@@ -1,0 +1,21 @@
+/* As regras globais já estão no global.css */
+/* Este arquivo mantém apenas especificidades da tela Fila de Espera, adaptadas para o Dark Mode Premium */
+
+.queue-summary-card { background: rgba(255, 94, 0, 0.05); border: 1px solid rgba(255, 94, 0, 0.15); border-radius: var(--raio); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.summary-item { display: flex; justify-content: space-between; align-items: center; }
+.summary-label { font-size: 12px; color: var(--text-main); font-weight: 500; }
+.summary-value { font-size: 18px; color: var(--brand-blue); font-weight: 800; text-shadow: var(--glow-subtle); }
+
+.pos-badge { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #1a1a1a; border: 1px solid var(--border-color); font-weight: 600; color: var(--text-muted); font-size: 13px; }
+.pos-badge.pos-next { background: var(--brand-blue); color: #fff; border-color: var(--brand-blue); box-shadow: var(--glow-active); }
+
+.badge-slot { display: inline-block; background: rgba(255, 94, 0, 0.1); color: var(--brand-blue); padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255, 94, 0, 0.2); }
+
+.actions-cell { display: flex; gap: 8px; }
+.btn-action { padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 0; cursor: pointer; transition: all 0.2s; }
+.btn-call { background: var(--brand-blue); color: #fff; box-shadow: var(--glow-subtle); }
+.btn-call:hover { background: var(--brand-blue-dark); box-shadow: var(--glow-active); }
+.btn-resend { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+.btn-resend:hover { background: #1a1a1a; border-color: #333; }
+.btn-remove { background: transparent; color: var(--text-muted); border: 1px solid transparent; }
+.btn-remove:hover { color: #f87171; background: rgba(220, 38, 38, 0.1); border-color: rgba(248, 113, 113, 0.2); }

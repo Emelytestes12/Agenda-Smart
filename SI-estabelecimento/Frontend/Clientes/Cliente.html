@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Clientes</title>
+  <link rel="icon" type="image/png" href="../Logo/logotipo.png">
+  <link rel="stylesheet" href="../global.css">
+  <link rel="stylesheet" href="Cliente.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="logo-container">
+        <img src="../Logo/logotipo.png" alt="Agenda Smart Logo" class="logo-img">
+      </div>
+      <h3 class="section-title">BUSCAR CLIENTE</h3>
+      <div class="form-group"><label for="search-client">Nome ou WhatsApp:</label><input type="text" id="search-client" placeholder="Ex: Mariana ou (11) 98765..."></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <h2 class="title orange">Cadastro de Clientes</h2>
+        <button id="btn-open-drawer" class="btn-primary">+ Novo Cliente</button>
+      </header>
+      <div class="table-container">
+        <table class="client-table">
+          <thead><tr><th>Nome</th><th>WhatsApp / Telefone (ID)</th><th>Observações</th><th style="text-align: right;">Ações</th></tr></thead>
+          <tbody id="client-body">
+          <tr>
+            <td>Mariana Souza</td>
+            <td>(11) 98765-4321</td>
+            <td><span class="client-obs">Alérgica a produtos com amônia.</span></td>
+            <td style="text-align: right;">
+              <button class="btn-primary btn-sm btn-agendar">+ Agendar Serviço</button>
+              <button class="btn-secondary btn-sm btn-editar">Editar</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Lucas Mendes</td>
+            <td>(11) 97777-8888</td>
+            <td><span class="client-obs">-</span></td>
+            <td style="text-align: right;">
+              <button class="btn-primary btn-sm btn-agendar">+ Agendar Serviço</button>
+              <button class="btn-secondary btn-sm btn-editar">Editar</button>
+            </td>
+          </tr>
+            <tr id="empty-row" class="empty-row" hidden><td colspan="4">Nenhum cliente encontrado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+    <aside id="drawer" class="drawer">
+      <div class="drawer-header"><h3 id="drawer-title" class="title">Novo Cliente</h3><button id="btn-close-drawer" class="btn-close" aria-label="Fechar">&times;</button></div>
+      <form id="cliente-form" class="drawer-body">
+        <div class="form-group"><label for="input-nome">Nome Completo:</label><input type="text" id="input-nome" required placeholder="Ex: Mariana Souza"></div>
+        <div class="form-group"><label for="input-telefone">WhatsApp / Telefone (ID):</label><input type="text" id="input-telefone" required placeholder="(11) 90000-0000"></div>
+        <div class="form-group"><label for="input-obs">Observações do Cliente:</label><input type="text" id="input-obs" placeholder="Preferências, restrições, etc."></div>
+        <button type="submit" class="btn-primary btn-block">Salvar Cliente</button>
+      </form>
+    </aside>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="../Agendamentos/Agendamento.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendamentos</a>
+    <a href="Cliente.html" class="active"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</a>
+    <a href="../Dashboard/Dash.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+    <a href="../Fila-de-espera/Fila.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera</a>
+    <a href="../Minha-Agenda/minhaAgenda.html"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
+    <a href="../WhatsApp-Config/whats.html"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</a>
+  </nav>
+
+  <script src="Cliente.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visão Geral de Agendamentos</title>
+  <link rel="icon" type="image/png" href="../Logo/logotipo.png">
+  <link rel="stylesheet" href="../global.css">
+  <link rel="stylesheet" href="Agendamento.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="logo-container">
+        <img src="../Logo/logotipo.png" alt="Agenda Smart Logo" class="logo-img">
+      </div>
+      <div class="calendar-header"><button class="cal-nav" id="btn-prev-month" aria-label="Mês anterior">&#8249;</button><span id="cal-month-year">Outubro 2026</span><button class="cal-nav" id="btn-next-month" aria-label="Próximo mês">&#8250;</button></div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+      <h3 class="section-title">Filtros operacionais</h3>
+      <div class="form-group"><label for="search-input">Buscar cliente (nome / tel):</label><input type="text" id="search-input" placeholder="Digite nome ou telefone..."></div>
+      <div class="form-group"><label>Status do agendamento:</label><div class="checkbox-group" id="status-filters"></div></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="date-controls"><button class="btn-today" id="btn-today">Hoje</button><h2 class="title orange" id="selected-date-display">22/10/2026</h2></div>
+        <button id="btn-open-drawer" class="btn-primary">+ Novo Agendamento</button>
+      </header>
+      <div class="table-container">
+        <table class="schedule-table">
+          <thead><tr><th>Horário</th><th>Cliente / WhatsApp</th><th>Perfil / Presenças</th><th>Serviço</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="schedule-body">
+            <tr id="empty-row" class="empty-row"><td colspan="6">Nenhum agendamento encontrado.<br>Use “Novo Agendamento” para criar o primeiro.</td></tr>
+            <tr id="divider-row" class="date-divider-row" hidden><td colspan="6"><div class="divider-label"><span>Outras datas / próximos agendamentos</span></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <div id="drawer-overlay" class="drawer-overlay"></div>
+    <aside id="drawer" class="drawer">
+      <div class="drawer-header"><h3 class="title">Novo Agendamento</h3><button id="btn-close-drawer" class="btn-close" aria-label="Fechar">&times;</button></div>
+      <form id="agendamento-form" class="drawer-body">
+        <div class="form-group"><label for="input-telefone">WhatsApp / Telefone (ID):</label><input type="text" id="input-telefone" required placeholder="(11) 90000-0000"></div>
+        <div class="form-group"><label for="input-cliente">Nome do Cliente:</label><input type="text" id="input-cliente" required placeholder="Ex: Mariana Souza"></div>
+        <div class="form-group"><label for="input-data">Data:</label><input type="date" id="input-data" required value="2026-10-22"></div>
+        <div class="form-group"><label for="input-hora">Horário:</label><input type="time" id="input-hora" required value="09:00"></div>
+        <div class="form-group"><label for="input-servico">Serviço:</label>
+          <select id="input-servico" required><option value="">Selecione...</option><option>Maquiagem (Carla)</option><option>Corte de Cabelo (Carla)</option></select>
+        </div>
+        <button type="submit" class="btn-primary btn-block">Confirmar Agendamento</button>
+      </form>
+    </aside>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <a href="Agendamento.html" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendamentos</a>
+    <a href="../Clientes/Cliente.html"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</a>
+    <a href="../Dashboard/Dash.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+    <a href="../Fila-de-espera/Fila.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera</a>
+    <a href="../Minha-Agenda/minhaAgenda.html"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
+    <a href="../WhatsApp-Config/whats.html"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</a>
+  </nav>
+  <script src="Agendamento.js"></script>
+</body>
+</html>
