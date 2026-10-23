@@ -17,15 +17,15 @@
       <div class="summary-period-card">
         <span class="summary-label">FILTRAR PERÍODO</span>
         <div class="period-buttons">
-          <button class="btn-period" data-period="today">Hoje</button>
-          <button class="btn-period active" data-period="week">Semana</button>
+          <button class="btn-period active" data-period="today">Hoje</button>
+          <button class="btn-period" data-period="week">Semana</button>
           <button class="btn-period" data-period="month">Mês</button>
         </div>
       </div>
       <h3 class="section-title">EFICIÊNCIA DA FILA</h3>
       <div class="sidebar-metric-box">
         <span class="metrics-label">Tempo Médio de Reencaixe</span>
-        <strong class="sidebar-metric-value" id="kpi-avg-time">3.5 min</strong>
+        <strong class="sidebar-metric-value" id="kpi-avg-time">2.1 min</strong>
         <span class="growth-tag positive">⚡ Resposta via Bot Zap em < 5 min</span>
       </div>
       <div class="sidebar-info-box">
@@ -36,58 +36,68 @@
     <main class="main-content">
       <header class="top-bar">
         <h2 class="title">Painel de Eficiência e Anti-No-Show</h2>
-        <a href="../Fila-de-espera/Fila.html" class="btn-primary">Ver Fila ao Vivo</a>
+        <a href="../Fila-de-espera/Fila.html" class="btn-primary">Ver Fila de Espera</a>
       </header>
 
       <div class="dashboard-body">
+        <!-- Grid de KPIs Fixo (Todos os 4 cards sempre visíveis) -->
         <div class="kpi-grid">
           <div class="kpi-card highlight-green">
             <div class="kpi-header"><span>Vagas Salvas</span></div>
-            <strong class="kpi-value" id="kpi-recovered-slots">12</strong>
-            <span class="kpi-subtext">Horários recuperados</span>
+            <strong class="kpi-value" id="kpi-recovered-slots">4</strong>
+            <span class="kpi-subtext" id="subtext-recovered">Horários recuperados hoje</span>
           </div>
+
           <div class="kpi-card">
             <div class="kpi-header"><span>Taxa de No-Show</span></div>
-            <strong class="kpi-value text-green" id="kpi-noshow-rate">1.8%</strong>
-            <span class="kpi-subtext">Redução de 12% este mês</span>
+            <strong class="kpi-value text-green" id="kpi-noshow-rate">0.0%</strong>
+            <span class="kpi-subtext" id="subtext-noshow">Sem faltas registradas</span>
           </div>
+
           <div class="kpi-card">
             <div class="kpi-header"><span>Taxa de Ocupação</span></div>
-            <strong class="kpi-value" id="kpi-occupancy">96.5%</strong>
-            <span class="kpi-subtext">Apenas 3.5% de ociosidade</span>
+            <strong class="kpi-value" id="kpi-occupancy">98.0%</strong>
+            <span class="kpi-subtext" id="subtext-occupancy">Apenas 2.0% de ociosidade</span>
           </div>
+
           <div class="kpi-card">
             <div class="kpi-header"><span>Conversão do Bot</span></div>
-            <strong class="kpi-value text-blue" id="kpi-conversion">88%</strong>
-            <span class="kpi-subtext">Aceitam a vaga ofertada</span>
+            <strong class="kpi-value text-blue" id="kpi-conversion">100%</strong>
+            <span class="kpi-subtext" id="subtext-conversion">Aceitaram a vaga ofertada</span>
           </div>
         </div>
 
+        <!-- Grid Principal Fixo (Gráfico + Histórico lado a lado) -->
         <div class="dashboard-main-grid">
+          <!-- Gráfico de Rosca/Donut Fixo -->
           <section class="content-card">
             <div class="card-title-bar">
               <h3 class="title-sm">Vagas Salvas vs. Faltas</h3>
-              <span class="badge-tag">Semana Atual</span>
+              <span class="badge-tag" id="chart-period-badge">Hoje</span>
             </div>
-            <div class="chart-bars-container">
-              <div class="bar-group"><div class="bar-wrapper"><div class="bar bar-lost" style="height: 15%;"></div><div class="bar bar-saved" style="height: 85%;"></div></div><span class="bar-label">Seg</span></div>
-              <div class="bar-group"><div class="bar-wrapper"><div class="bar bar-lost" style="height: 10%;"></div><div class="bar bar-saved" style="height: 90%;"></div></div><span class="bar-label">Ter</span></div>
-              <div class="bar-group"><div class="bar-wrapper"><div class="bar bar-lost" style="height: 5%;"></div><div class="bar bar-saved" style="height: 95%;"></div></div><span class="bar-label">Qua</span></div>
-              <div class="bar-group"><div class="bar-wrapper"><div class="bar bar-lost" style="height: 20%;"></div><div class="bar bar-saved" style="height: 80%;"></div></div><span class="bar-label">Qui</span></div>
-              <div class="bar-group"><div class="bar-wrapper"><div class="bar bar-lost" style="height: 0%;"></div><div class="bar bar-saved" style="height: 100%;"></div></div><span class="bar-label">Sex</span></div>
+            
+            <div class="donut-chart-wrapper">
+              <div class="donut-chart" id="donut-chart-element">
+                <div class="donut-center">
+                  <span class="donut-number" id="donut-percentage">100%</span>
+                  <span class="donut-sub">Eficiência</span>
+                </div>
+              </div>
             </div>
-            <div class="chart-legend">
-              <div class="legend-item"><span class="color-dot saved"></span> Recuperados</div>
-              <div class="legend-item"><span class="color-dot lost"></span> Perdidos</div>
+
+            <div class="chart-legend centered">
+              <div class="legend-item"><span class="color-dot saved"></span> Vagas Salvas (<span id="legend-saved-count">4</span>)</div>
+              <div class="legend-item"><span class="color-dot lost"></span> Faltas (<span id="legend-lost-count">0</span>)</div>
             </div>
           </section>
 
+          <!-- Histórico de Reencaixes Fixo -->
           <section class="content-card">
             <div class="card-title-bar">
               <h3 class="title-sm">Histórico de Reencaixes</h3>
-              <span class="status-pulse">Ao Vivo</span>
+              <span class="status-pulse" id="feed-period-badge">Hoje</span>
             </div>
-            <ul class="activity-feed">
+            <ul class="activity-feed" id="activity-feed-list">
               <li class="feed-item success">
                 <div class="feed-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
                 <div class="feed-content">
@@ -108,7 +118,7 @@
                 <div class="feed-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>
                 <div class="feed-content">
                   <strong>Lembretes Automáticos Disparados</strong>
-                  <p>Notificações enviadas para amanhã.</p>
+                  <p>Notificações enviadas para hoje.</p>
                   <span class="feed-time">Há 3 horas</span>
                 </div>
               </li>
@@ -121,7 +131,7 @@
 
   <nav class="bottom-nav" aria-label="Navegação principal">
     <a href="../Agendamentos/Agendamento.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendamentos</a>
-    <a href="../Clientes/Cliente.html"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</a>
+    <a href="../Clientes/Cliente.html"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 1 0 7.8"/></svg>Clientes</a>
     <a href="Dash.html" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
     <a href="../Fila-de-espera/Fila.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera</a>
     <a href="../Minha-Agenda/minhaAgenda.html"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
