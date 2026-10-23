@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const formatarBR = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
   const formatarIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Captura dinâmica da data de HOJE do navegador
+  // Data de HOJE capturada dinamicamente do sistema da máquina
   const HOJE_OBJ = new Date();
   const HOJE_STR = formatarIso(HOJE_OBJ);
 
@@ -59,7 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataSelIso = formatarIso(dataAtual);
     const ehHoje = dataSelIso === HOJE_STR;
     
-    $('selected-date-display').textContent = ehHoje ? `Hoje, ${formatarBR(dataAtual)}` : formatarBR(dataAtual);
+    // Injeta texto puro no campo ao lado do botão "Visão do Dia"
+    const displayEl = $('selected-date-display');
+    if (displayEl) {
+      displayEl.textContent = ehHoje ? `Hoje, ${formatarBR(dataAtual)}` : formatarBR(dataAtual);
+    }
     
     organizarEFiltrarTabela();
   };
@@ -73,8 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-prev-month').onclick = () => { mesCal--; if (mesCal < 0) { mesCal = 11; anoCal--; } renderizarCalendario(); };
   $('btn-next-month').onclick = () => { mesCal++; if (mesCal > 11) { mesCal = 0; anoCal++; } renderizarCalendario(); };
   
-  // Botão "Hoje"
-  $('btn-today').onclick = () => selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
+  // Ação ao clicar no botão "Visão do Dia" (reseta para o dia atual)
+  const btnToday = $('btn-today');
+  if (btnToday) {
+    btnToday.onclick = () => selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
+  }
 
   // Controle de Drawer / Modal
   const toggleDrawer = aberto => {
@@ -85,11 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-open-drawer').onclick = () => toggleDrawer(true);
   $('btn-close-drawer').onclick = $('drawer-overlay').onclick = () => toggleDrawer(false);
 
-  // Organização e Filtragem da Tabela
+  // Organização e Filtragem Inteligente da Tabela
   const organizarEFiltrarTabela = () => {
     const q = search.value.toLowerCase().trim();
     const ativos = filtros.filter(f => f.checked).map(f => f.value);
     const dataFiltroIso = formatarIso(dataAtual);
+    const ehHoje = dataFiltroIso === HOJE_STR;
     const dividerRow = $('divider-row');
 
     // Obtém todas as linhas de agendamento (ignorando empty-row e divider-row)
@@ -104,21 +112,40 @@ document.addEventListener('DOMContentLoaded', () => {
       const nomeOuTel = r.querySelector('td:nth-child(2)').textContent.toLowerCase();
 
       const atendeFiltros = ativos.includes(statusItem) && nomeOuTel.includes(q);
-      r.hidden = !atendeFiltros;
 
-      // Reorganização DOM: move para cima do divisor (se for a data selecionada) ou para baixo
-      if (dataItem === dataFiltroIso) {
-        body.insertBefore(r, dividerRow);
-        if (atendeFiltros) visiveisDoDia++;
+      if (ehHoje) {
+        // REGRA PARA HOJE: Exibe agendamentos do dia no topo e TODOS os outros abaixo do divisor
+        r.hidden = !atendeFiltros;
+
+        if (dataItem === dataFiltroIso) {
+          body.insertBefore(r, dividerRow);
+          if (atendeFiltros) visiveisDoDia++;
+        } else {
+          body.appendChild(r);
+          if (atendeFiltros) visiveisOutrasDatas++;
+        }
       } else {
-        body.appendChild(r);
-        if (atendeFiltros) visiveisOutrasDatas++;
+        // REGRA PARA OUTRAS DATAS: Oculta tudo e exibe estritamente o dia selecionado
+        const ehDataSelecionada = dataItem === dataFiltroIso;
+        
+        r.hidden = !(atendeFiltros && ehDataSelecionada);
+
+        if (ehDataSelecionada) {
+          body.insertBefore(r, dividerRow);
+          if (atendeFiltros) visiveisDoDia++;
+        }
       }
     });
 
-    const totalVisiveis = visiveisDoDia + visiveisOutrasDatas;
+    const totalVisiveis = ehHoje ? (visiveisDoDia + visiveisOutrasDatas) : visiveisDoDia;
+    
+    // Oculta a linha divisória se não estiver na visualização de Hoje ou não houver outros itens
+    if (dividerRow) {
+      dividerRow.hidden = !ehHoje || visiveisOutrasDatas === 0;
+    }
+    
+    // Exibe ou oculta a mensagem de lista vazia
     $('empty-row').hidden = totalVisiveis > 0;
-    dividerRow.hidden = visiveisOutrasDatas === 0;
   };
 
   search.oninput = organizarEFiltrarTabela;
@@ -183,6 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleDrawer(false);
   };
 
-  // Inicialização do sistema com a data de HOJE
+  // Inicialização do sistema com a data de HOJE da máquina
   selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
 });
