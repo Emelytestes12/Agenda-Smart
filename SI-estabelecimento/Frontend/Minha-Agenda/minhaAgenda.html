@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Minha Agenda</title>
+  <title>Minha Agenda - Agenda Smart</title>
   <link rel="icon" type="image/png" href="../Logo/logotipo.png">
   <link rel="stylesheet" href="../global.css">
   <link rel="stylesheet" href="minhaAgenda.css">
@@ -14,34 +14,56 @@
       <div class="logo-container">
         <img src="../Logo/logotipo.png" alt="Agenda Smart Logo" class="logo-img">
       </div>
+      
+      <!-- Mini Calendário Lateral -->
       <div class="mini-calendario">
-        <div class="cal-header"><button class="cal-nav" id="btnPrevMes" aria-label="Mês anterior">&#8249;</button><span id="calMesAno">Agosto 2026</span><button class="cal-nav" id="btnNextMes" aria-label="Próximo mês">&#8250;</button></div>
-        <div class="calendar-grid cal-dias-semana"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="cal-header">
+          <button class="cal-nav" id="btnPrevMes" aria-label="Mês anterior">&#8249;</button>
+          <span id="calMesAno"></span>
+          <button class="cal-nav" id="btnNextMes" aria-label="Próximo mês">&#8250;</button>
+        </div>
+        <div class="calendar-grid cal-dias-semana">
+          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+        </div>
         <div class="calendar-grid cal-grid" id="calDias"></div>
       </div>
 
       <h3 class="section-title">FILTROS & CADASTROS</h3>
       
       <div class="form-group">
-        <div class="header-filtro"><label for="filtroServico">Serviço:</label><button id="btnNovoServico" class="btn-link">+ Cadastrar</button></div>
-        <select id="filtroServico"><option value="todos">Todos os Serviços</option></select>
+        <div class="header-filtro">
+          <label for="filtroServico">Serviço:</label>
+          <button id="btnNovoServico" class="btn-link">+ Cadastrar</button>
+        </div>
+        <select id="filtroServico">
+          <option value="todos">Todos os Serviços</option>
+        </select>
       </div>
 
       <div class="form-group">
-        <div class="header-filtro"><label>Profissionais:</label><button id="btnNovoProfissional" class="btn-link">+ Cadastrar</button></div>
+        <div class="header-filtro">
+          <label>Profissionais:</label>
+          <button id="btnNovoProfissional" class="btn-link">+ Cadastrar</button>
+        </div>
         <div class="checkbox-group" id="containerChkProfissionais"></div>
       </div>
     </aside>
 
     <main class="main-content">
       <header class="top-bar">
-        <div class="date-controls"><h2 class="title orange" id="tituloDataExibida">Quinta-feira, 22/10/2026</h2></div>
+        <div class="date-controls">
+          <h2 class="title orange" id="tituloDataExibida"></h2>
+        </div>
         <button id="btnNovoAgendamento" class="btn-primary">+ Adicionar Horário</button>
       </header>
 
       <div class="table-container scroll-dark">
         <table class="schedule-table">
-          <thead><tr id="linhaCabecalhoGrid"><th class="time-col">Horário</th></tr></thead>
+          <thead>
+            <tr id="linhaCabecalhoGrid">
+              <th class="time-col">Horário</th>
+            </tr>
+          </thead>
           <tbody id="corpoGrid"></tbody>
         </table>
       </div>
@@ -49,23 +71,52 @@
 
     <div id="drawer-overlay" class="drawer-overlay"></div>
     
+    <!-- Drawer: Adicionar Horário -->
     <aside id="painelAgendamento" class="drawer">
-      <div class="drawer-header"><h3 class="title">Adicionar Horário</h3><button class="btn-close btn-fechar-drawer" data-fechar="painelAgendamento">&times;</button></div>
+      <div class="drawer-header">
+        <h3 class="title">Adicionar Horário</h3>
+        <button class="btn-close btn-fechar-drawer" data-fechar="painelAgendamento">&times;</button>
+      </div>
       <form id="formAgendamento" class="drawer-body">
-        <div class="form-group"><label for="dataSelect">Data:</label><input type="date" id="dataSelect" required></div>
-        <div class="form-group"><label for="horaSelect">Horário:</label><input type="time" id="horaSelect" required value="09:00"></div>
-        <div class="form-group"><label for="profissionalSelect">Profissional:</label><select id="profissionalSelect" required></select></div>
-        <div class="form-group"><label for="servicoSelect">Serviço:</label><select id="servicoSelect" required></select></div>
-        <div class="form-group"><label for="observacao">Observação (Opcional):</label><input type="text" id="observacao" placeholder="Ex: Reservado para cliente"></div>
+        <div class="form-group">
+          <label for="dataSelect">Data:</label>
+          <input type="date" id="dataSelect" required>
+        </div>
+        <div class="form-group">
+          <label for="horaSelect">Horário:</label>
+          <input type="time" id="horaSelect" required value="09:00">
+        </div>
+        <div class="form-group">
+          <label for="profissionalSelect">Profissional:</label>
+          <select id="profissionalSelect" required></select>
+        </div>
+        <div class="form-group">
+          <label for="servicoSelect">Serviço:</label>
+          <select id="servicoSelect" required></select>
+        </div>
+        <div class="form-group">
+          <label for="observacao">Observação (Opcional):</label>
+          <input type="text" id="observacao" placeholder="Ex: Reservado para cliente">
+        </div>
         <button type="submit" class="btn-primary btn-block">Salvar Horário</button>
       </form>
     </aside>
 
+    <!-- Drawer: Cadastrar/Remover Profissional -->
     <aside id="painelProfissional" class="drawer">
-      <div class="drawer-header"><h3 class="title orange">Cadastrar Profissional</h3><button class="btn-close btn-fechar-drawer" data-fechar="painelProfissional">&times;</button></div>
+      <div class="drawer-header">
+        <h3 class="title orange">Cadastrar Profissional</h3>
+        <button class="btn-close btn-fechar-drawer" data-fechar="painelProfissional">&times;</button>
+      </div>
       <form id="formProfissional" class="drawer-body">
-        <div class="form-group"><label for="nomeProfissional">Nome do Profissional:</label><input type="text" id="nomeProfissional" placeholder="Ex: Clara Silva" required></div>
-        <div class="form-group"><label for="especialidadeProfissional">Especialidade:</label><input type="text" id="especialidadeProfissional" placeholder="Ex: Nail Designer" required></div>
+        <div class="form-group">
+          <label for="nomeProfissional">Nome do Profissional:</label>
+          <input type="text" id="nomeProfissional" placeholder="Ex: Clara Silva" required>
+        </div>
+        <div class="form-group">
+          <label for="especialidadeProfissional">Especialidade:</label>
+          <input type="text" id="especialidadeProfissional" placeholder="Ex: Nail Designer" required>
+        </div>
         <button type="submit" class="btn-primary btn-block">Salvar Profissional</button>
         <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0;">
         <h4 style="color: var(--text-light); margin-bottom: 12px; font-size: 14px;">Remover Profissional</h4>
@@ -78,10 +129,17 @@
       </form>
     </aside>
 
+    <!-- Drawer: Cadastrar/Remover Serviço -->
     <aside id="painelServico" class="drawer">
-      <div class="drawer-header"><h3 class="title orange">Cadastrar Serviço</h3><button class="btn-close btn-fechar-drawer" data-fechar="painelServico">&times;</button></div>
+      <div class="drawer-header">
+        <h3 class="title orange">Cadastrar Serviço</h3>
+        <button class="btn-close btn-fechar-drawer" data-fechar="painelServico">&times;</button>
+      </div>
       <form id="formServico" class="drawer-body">
-        <div class="form-group"><label for="nomeServico">Nome do Serviço:</label><input type="text" id="nomeServico" placeholder="Ex: Unhas em gel" required></div>
+        <div class="form-group">
+          <label for="nomeServico">Nome do Serviço:</label>
+          <input type="text" id="nomeServico" placeholder="Ex: Unhas em gel" required>
+        </div>
         <button type="submit" class="btn-primary btn-block">Salvar Serviço</button>
         <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 24px 0;">
         <h4 style="color: var(--text-light); margin-bottom: 12px; font-size: 14px;">Remover Serviço</h4>
@@ -96,12 +154,24 @@
   </div>
 
   <nav class="bottom-nav" aria-label="Navegação principal">
-    <a href="../Agendamentos/Agendamento.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendamentos</a>
-    <a href="../Clientes/Cliente.html"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</a>
-    <a href="../Dashboard/Dash.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
-    <a href="../Fila-de-espera/Fila.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera</a>
-    <a href="minhaAgenda.html" class="active"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
-    <a href="../WhatsApp-Config/whats.html"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</a>
+    <a href="../Agendamentos/Agendamento.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendamentos
+    </a>
+    <a href="../Clientes/Cliente.html">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes
+    </a>
+    <a href="../Dashboard/Dash.html">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard
+    </a>
+    <a href="../Fila-de-espera/Fila.html">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera
+    </a>
+    <a href="minhaAgenda.html" class="active">
+      <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda
+    </a>
+    <a href="../WhatsApp-Config/whats.html">
+      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp
+    </a>
   </nav>
 
   <script src="minhaAgenda.js"></script>
