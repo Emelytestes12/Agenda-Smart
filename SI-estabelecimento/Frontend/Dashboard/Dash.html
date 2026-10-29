@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - Performance</title>
+  <title>Dashboard - Performance - Agenda Smart</title>
   <link rel="icon" type="image/png" href="../Logo/logotipo.png">
   <link rel="stylesheet" href="../global.css">
   <link rel="stylesheet" href="Dash.css">
@@ -25,8 +25,8 @@
       <h3 class="section-title">EFICIÊNCIA DA FILA</h3>
       <div class="sidebar-metric-box">
         <span class="metrics-label">Tempo Médio de Reencaixe</span>
-        <strong class="sidebar-metric-value" id="kpi-avg-time">2.1 min</strong>
-        <span class="growth-tag positive">⚡ Resposta via Bot Zap em < 5 min</span>
+        <strong class="sidebar-metric-value" id="kpi-avg-time">-- min</strong>
+        <span class="growth-tag positive">⚡ Resposta via Bot Zap em &lt; 5 min</span>
       </div>
       <div class="sidebar-info-box">
         <p><strong>Meta do Sistema:</strong> Reduzir horários vagos e reencaixar desmarcações via WhatsApp em menos de 10 minutos.</p>
@@ -40,12 +40,12 @@
       </header>
 
       <div class="dashboard-body">
-        <!-- Grid de KPIs Fixo (Todos os 4 cards sempre visíveis) -->
+        <!-- Grid de KPIs Fixo -->
         <div class="kpi-grid">
           <div class="kpi-card highlight-green">
             <div class="kpi-header"><span>Vagas Salvas</span></div>
-            <strong class="kpi-value" id="kpi-recovered-slots">4</strong>
-            <span class="kpi-subtext" id="subtext-recovered">Horários recuperados hoje</span>
+            <strong class="kpi-value" id="kpi-recovered-slots">0</strong>
+            <span class="kpi-subtext" id="subtext-recovered">Horários recuperados</span>
           </div>
 
           <div class="kpi-card">
@@ -56,20 +56,20 @@
 
           <div class="kpi-card">
             <div class="kpi-header"><span>Taxa de Ocupação</span></div>
-            <strong class="kpi-value" id="kpi-occupancy">98.0%</strong>
-            <span class="kpi-subtext" id="subtext-occupancy">Apenas 2.0% de ociosidade</span>
+            <strong class="kpi-value" id="kpi-occupancy">0.0%</strong>
+            <span class="kpi-subtext" id="subtext-occupancy">Taxa de preenchimento</span>
           </div>
 
           <div class="kpi-card">
             <div class="kpi-header"><span>Conversão do Bot</span></div>
-            <strong class="kpi-value text-blue" id="kpi-conversion">100%</strong>
+            <strong class="kpi-value text-blue" id="kpi-conversion">0%</strong>
             <span class="kpi-subtext" id="subtext-conversion">Aceitaram a vaga ofertada</span>
           </div>
         </div>
 
-        <!-- Grid Principal Fixo (Gráfico + Histórico lado a lado) -->
+        <!-- Grid Principal (Gráfico + Histórico) -->
         <div class="dashboard-main-grid">
-          <!-- Gráfico de Rosca/Donut Fixo -->
+          <!-- Gráfico de Rosca/Donut -->
           <section class="content-card">
             <div class="card-title-bar">
               <h3 class="title-sm">Vagas Salvas vs. Faltas</h3>
@@ -79,49 +79,26 @@
             <div class="donut-chart-wrapper">
               <div class="donut-chart" id="donut-chart-element">
                 <div class="donut-center">
-                  <span class="donut-number" id="donut-percentage">100%</span>
+                  <span class="donut-number" id="donut-percentage">0%</span>
                   <span class="donut-sub">Eficiência</span>
                 </div>
               </div>
             </div>
 
             <div class="chart-legend centered">
-              <div class="legend-item"><span class="color-dot saved"></span> Vagas Salvas (<span id="legend-saved-count">4</span>)</div>
+              <div class="legend-item"><span class="color-dot saved"></span> Vagas Salvas (<span id="legend-saved-count">0</span>)</div>
               <div class="legend-item"><span class="color-dot lost"></span> Faltas (<span id="legend-lost-count">0</span>)</div>
             </div>
           </section>
 
-          <!-- Histórico de Reencaixes Fixo -->
+          <!-- Histórico de Reencaixes -->
           <section class="content-card">
             <div class="card-title-bar">
               <h3 class="title-sm">Histórico de Reencaixes</h3>
               <span class="status-pulse" id="feed-period-badge">Hoje</span>
             </div>
             <ul class="activity-feed" id="activity-feed-list">
-              <li class="feed-item success">
-                <div class="feed-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-                <div class="feed-content">
-                  <strong>Vaga das 15:00 Recuperada</strong>
-                  <p>Ana Beatriz (1º da Fila) aceitou pelo Zap.</p>
-                  <span class="feed-time">Há 12 minutos</span>
-                </div>
-              </li>
-              <li class="feed-item success">
-                <div class="feed-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-                <div class="feed-content">
-                  <strong>Vaga das 11:30 Recuperada</strong>
-                  <p>Carlos Eduardo (2º da Fila) confirmou.</p>
-                  <span class="feed-time">Há 1 hora</span>
-                </div>
-              </li>
-              <li class="feed-item warning">
-                <div class="feed-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>
-                <div class="feed-content">
-                  <strong>Lembretes Automáticos Disparados</strong>
-                  <p>Notificações enviadas para hoje.</p>
-                  <span class="feed-time">Há 3 horas</span>
-                </div>
-              </li>
+              <!-- O feed de atividades será gerado dinamicamente -->
             </ul>
           </section>
         </div>
@@ -132,11 +109,12 @@
   <nav class="bottom-nav" aria-label="Navegação principal">
     <a href="../Agendamentos/Agendamento.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Agendamentos</a>
     <a href="../Clientes/Cliente.html"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes</a>
-    <a href="../Dashboard/Dash.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+    <a href="Dash.html" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
     <a href="../Fila-de-espera/Fila.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera</a>
-    <a href="minhaAgenda.html" class="active"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
+    <a href="../Minha-Agenda/minhaAgenda.html"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
     <a href="../WhatsApp-Config/whats.html"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</a>
   </nav>
+
   <script src="Dash.js"></script>
 </body>
 </html>
