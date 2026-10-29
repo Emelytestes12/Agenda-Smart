@@ -1,21 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-  const esc = s => s.replace(/[&<>"]/g, c => `&#${c.charCodeAt(0)};`);
+  const API_URL = 'http://localhost:3000/api/clientes';
+
+  // State local dos clientes
+  let clientes = [];
+
+  const esc = s => (s || '').toString().replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
   const form = $('cliente-form'), search = $('search-client'), body = $('client-body');
 
-  let editingRow = null;
-
-  const toggleDrawer = (aberto, isEdit = false, row = null) => {
-    $('drawer-title').textContent = isEdit ? 'Editar Cliente' : 'Novo Cliente';
+  // --- CONTROLE DE DRAWER / MODAL ---
+  const toggleDrawer = (aberto, cliente = null) => {
+    $('drawer-title').textContent = cliente ? 'Editar Cliente' : 'Novo Cliente';
     
-    if (isEdit && row) {
-      editingRow = row;
-      $('input-nome').value = row.cells[0].textContent.trim();
-      $('input-telefone').value = row.cells[1].textContent.trim();
-      const obs = row.cells[2].textContent.trim();
-      $('input-obs').value = obs === '-' ? '' : obs;
+    if (cliente) {
+      $('input-id').value = cliente.id;
+      $('input-nome').value = cliente.nome || '';
+      $('input-telefone').value = cliente.telefone || '';
+      $('input-obs').value = cliente.observacoes || '';
     } else {
-      editingRow = null;
+      $('input-id').value = '';
       if (aberto) form.reset();
     }
     
@@ -26,42 +29,110 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-open-drawer').onclick = () => toggleDrawer(true);
   $('btn-close-drawer').onclick = $('drawer-overlay').onclick = () => toggleDrawer(false);
 
-  const aplicarFiltro = () => {
+  // --- CARREGAMENTO DINÂMICO VIA API ---
+  const carregarClientes = async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        clientes = await res.json();
+        renderizarTabela();
+      }
+    } catch (err) {
+      console.error('Erro ao buscar clientes:', err);
+    }
+  };
+
+  // Renderiza e filtra os clientes na tabela
+  const renderizarTabela = () => {
     const q = search.value.toLowerCase().trim();
-    const linhas = [...body.querySelectorAll('tr:not(.empty-row)')];
-    linhas.forEach(r => {
-      const text = r.querySelector('td:nth-child(1)').textContent.toLowerCase() + ' ' + r.querySelector('td:nth-child(2)').textContent.toLowerCase();
-      r.hidden = !text.includes(q);
+
+    // Remove apenas as linhas de clientes mantendo a linha de aviso
+    body.querySelectorAll('tr[data-id]').forEach(tr => tr.remove());
+
+    const filtrados = clientes.filter(c => {
+      const text = `${c.nome || ''} ${c.telefone || ''}`.toLowerCase();
+      return text.includes(q);
     });
-    const visiveis = linhas.filter(r => !r.hidden);
-    $('empty-row').hidden = visiveis.length > 0;
-  };
-  search.oninput = aplicarFiltro;
 
-  body.onclick = e => {
-    if (e.target.matches('.btn-editar') || e.target.closest('.btn-editar')) toggleDrawer(true, true, e.target.closest('tr'));
-    if (e.target.matches('.btn-agendar') || e.target.closest('.btn-agendar')) window.location.href = '../Agendamentos/Agendamento.html';
-  };
-
-  form.onsubmit = e => {
-    e.preventDefault();
-    if (editingRow) {
-      editingRow.cells[0].textContent = $('input-nome').value;
-      editingRow.cells[1].textContent = $('input-telefone').value;
-      editingRow.cells[2].innerHTML = `<span class="client-obs">${esc($('input-obs').value) || '-'}</span>`;
-    } else {
+    filtrados.forEach(cliente => {
       const tr = document.createElement('tr');
+      tr.dataset.id = cliente.id;
+
       tr.innerHTML = `
-        <td>${esc($('input-nome').value)}</td>
-        <td>${esc($('input-telefone').value)}</td>
-        <td><span class="client-obs">${esc($('input-obs').value) || '-'}</span></td>
+        <td>${esc(cliente.nome)}</td>
+        <td>${esc(cliente.telefone)}</td>
+        <td><span class="client-obs">${esc(cliente.observacoes) || '-'}</span></td>
         <td style="text-align: right;">
           <button class="btn-primary btn-sm btn-agendar">+ Agendar Serviço</button>
           <button class="btn-secondary btn-sm btn-editar">Editar</button>
-        </td>`;
-      body.insertBefore(tr, body.firstChild);
-    }
-    aplicarFiltro();
-    toggleDrawer(false);
+        </td>
+      `;
+
+      body.insertBefore(tr, $('empty-row'));
+    });
+
+    $('empty-row').hidden = filtrados.length > 0;
   };
+
+  search.oninput = renderizarTabela;
+
+  // Ações nos botões da tabela (Editar e Agendar)
+  body.onclick = e => {
+    const tr = e.target.closest('tr[data-id]');
+    if (!tr) return;
+    
+    const id = tr.dataset.id;
+    const cliente = clientes.find(c => c.id == id);
+
+    if (e.target.matches('.btn-editar') || e.target.closest('.btn-editar')) {
+      toggleDrawer(true, cliente);
+    }
+
+    if (e.target.matches('.btn-agendar') || e.target.closest('.btn-agendar')) {
+      window.location.href = '../Agendamentos/Agendamento.html';
+    }
+  };
+
+  // --- SALVAR / EDITAR CLIENTE (POST / PUT) ---
+  form.onsubmit = async e => {
+    e.preventDefault();
+
+    const id = $('input-id').value;
+    const dadosCliente = {
+      nome: $('input-nome').value.trim(),
+      telefone: $('input-telefone').value.trim(),
+      observacoes: $('input-obs').value.trim()
+    };
+
+    try {
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `${API_URL}/${id}` : API_URL;
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dadosCliente)
+      });
+
+      if (res.ok) {
+        const clienteSalvo = await res.json();
+        if (id) {
+          const index = clientes.findIndex(c => c.id == id);
+          if (index !== -1) clientes[index] = clienteSalvo;
+        } else {
+          clientes.unshift(clienteSalvo);
+        }
+        renderizarTabela();
+        toggleDrawer(false);
+      } else {
+        alert('Erro ao salvar os dados do cliente.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
+  };
+
+  // Inicialização
+  carregarClientes();
 });
