@@ -8,40 +8,125 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ==========================================
+// 1. CLIENTES (Tela: Clientes)
+// ==========================================
 model Cliente {
-  id           String        @id @default(uuid())
-  nome         String
-  telefone     String        @unique
+  id          Int      @id @default(autoincrement())
+  nome        String
+  telefone    String   @unique
+  observacoes String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   agendamentos Agendamento[]
-  createdAt    DateTime      @default(now())
+
+  @@index([telefone])
+  @@index([nome])
 }
 
-model Profissional {
-  id           String        @id @default(uuid())
-  nome         String
-  especialidade String?
-  agendamentos Agendamento[]
-  createdAt    DateTime      @default(now())
-}
-
-model Servico {
-  id           String        @id @default(uuid())
-  nome         String
-  preco        Float
-  duracaoMin   Int
-  agendamentos Agendamento[]
-  createdAt    DateTime      @default(now())
-}
-
+// ==========================================
+// 2. AGENDAMENTOS (Tela: Agendamentos & Dashboard)
+// ==========================================
 model Agendamento {
-  id             String       @id @default(uuid())
-  dataHora       DateTime
-  status         String       @default("PENDENTE")
-  clienteId      String
-  cliente        Cliente      @relation(fields: [clienteId], references: [id])
-  profissionalId String
-  profissional   Profissional @relation(fields: [profissionalId], references: [id])
-  servicoId      String
-  servico        Servico      @relation(fields: [servicoId], references: [id])
-  createdAt      DateTime     @default(now())
+  id              Int      @id @default(autoincrement())
+  clienteNome     String
+  clienteTelefone String
+  data            String   // Formato YYYY-MM-DD
+  hora            String   // Formato HH:mm
+  servico         String
+  profissional    String?  // Profissional alocado
+  status          String   @default("pendente") // pendente, confirmado, cancelado, finalizado
+  motivoCancelamento String?
+
+  // Relacionamento opcional com a tabela de Clientes
+  clienteId       Int?
+  cliente         Cliente? @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([data])
+  @@index([status])
+}
+
+// ==========================================
+// 3. FILA DE ESPERA (Tela: Fila de Espera Automática)
+// ==========================================
+model FilaEspera {
+  id              Int      @id @default(autoincrement())
+  clienteNome     String
+  clienteTelefone String
+  servico         String
+  profissional    String   @default("Qualquer disponível")
+  vagaOfertada    String?  // Ex: "Vaga das 15:00"
+  status          String   @default("aguardando") // aguardando, disparado, aceito
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ==========================================
+// 4. PROFISSIONAIS (Tela: Minha Agenda)
+// ==========================================
+model Profissional {
+  id            Int      @id @default(autoincrement())
+  nome          String   @unique
+  especialidade String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==========================================
+// 5. SERVIÇOS (Tela: Minha Agenda)
+// ==========================================
+model Servico {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// 6. ITENS DA MINHA AGENDA (Tela: Minha Agenda / Grid Interativo)
+// ==========================================
+model AgendaItem {
+  id          Int      @id @default(autoincrement())
+  data        String   // Formato YYYY-MM-DD
+  hora        String   // Formato HH:mm (ex: "09:00")
+  prof        String   // Nome do profissional
+  servico     String   // Nome do serviço
+  clienteNome String?  // Nome do cliente reservado (se houver)
+  obs         String?  // Observação opcional do bloco
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([data, prof])
+}
+
+// ==========================================
+// 7. HISTÓRICO / FEED DE ATIVIDADES (Tela: Dashboard)
+// ==========================================
+model LogAtividade {
+  id        Int      @id @default(autoincrement())
+  tipo      String   // success, warning, info
+  titulo    String
+  descricao String
+  tempo     String?  // Ex: "Há 12 minutos" ou timestamp
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// 8. CONFIGURAÇÕES DO WHATSAPP (Tela: WhatsApp Config)
+// ==========================================
+model WhatsappConfig {
+  id           Int      @id @default(1)
+  instanciaId  String?
+  token        String?
+  phoneId      String?
+  status       String   @default("desconectado") // conectado, desconectado, aguardando_qr
+  mensagemBase String?
+  updatedAt    DateTime @updatedAt
 }
