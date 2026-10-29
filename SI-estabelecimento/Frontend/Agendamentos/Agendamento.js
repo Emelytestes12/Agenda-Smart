@@ -1,10 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
+  const API_URL = 'http://localhost:3000/api/agendamentos';
+
+  // State local dos agendamentos vindos do banco de dados
+  let agendamentos = [];
 
   // Status e utilitários gerais
   const STATUS = { confirmado: 'Confirmado', aguardando: 'Aguardando', finalizado: 'Finalizado', cancelado: 'Cancelado' };
   const opcoes = Object.entries(STATUS).map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
-  const esc = s => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+  const esc = s => (s || '').toString().replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 
   const body = $('schedule-body'), grid = $('calendar-grid'), search = $('search-input'), form = $('agendamento-form');
 
@@ -15,15 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-  // Funções de Formatação de Data
+  // Formatações de Data
   const formatarBR = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
   const formatarIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Data de HOJE capturada dinamicamente do sistema da máquina
+  // Data de HOJE capturada dinamicamente
   const HOJE_OBJ = new Date();
   const HOJE_STR = formatarIso(HOJE_OBJ);
 
-  // Data Selecionada e Navegação do Calendário
   let dataAtual = new Date(HOJE_OBJ.getFullYear(), HOJE_OBJ.getMonth(), HOJE_OBJ.getDate());
   let mesCal = dataAtual.getMonth(), anoCal = dataAtual.getFullYear();
 
@@ -44,12 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.innerHTML = diasHeader + brancos + numDias;
   };
 
-  // Atualiza campo de data no modal Drawer com a data selecionada
   const sincronizarInputDataModal = () => {
     $('input-data').value = formatarIso(dataAtual);
   };
 
-  // Seleciona o dia no painel
   const selecionarDia = (dia, mes, ano) => {
     dataAtual = new Date(ano, mes, dia);
     mesCal = mes; anoCal = ano;
@@ -59,13 +60,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataSelIso = formatarIso(dataAtual);
     const ehHoje = dataSelIso === HOJE_STR;
     
-    // Injeta texto puro no campo ao lado do botão "Visão do Dia"
     const displayEl = $('selected-date-display');
     if (displayEl) {
       displayEl.textContent = ehHoje ? `Hoje, ${formatarBR(dataAtual)}` : formatarBR(dataAtual);
     }
     
-    organizarEFiltrarTabela();
+    renderizarTabela();
   };
 
   grid.onclick = e => {
@@ -77,13 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-prev-month').onclick = () => { mesCal--; if (mesCal < 0) { mesCal = 11; anoCal--; } renderizarCalendario(); };
   $('btn-next-month').onclick = () => { mesCal++; if (mesCal > 11) { mesCal = 0; anoCal++; } renderizarCalendario(); };
   
-  // Ação ao clicar no botão "Visão do Dia" (reseta para o dia atual)
   const btnToday = $('btn-today');
   if (btnToday) {
     btnToday.onclick = () => selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
   }
 
-  // Controle de Drawer / Modal
+  // Controle do Drawer / Modal
   const toggleDrawer = aberto => {
     ['drawer', 'drawer-overlay'].forEach(id => $(id).classList.toggle('open', aberto));
     if (!aberto) form.reset();
@@ -92,124 +91,160 @@ document.addEventListener('DOMContentLoaded', () => {
   $('btn-open-drawer').onclick = () => toggleDrawer(true);
   $('btn-close-drawer').onclick = $('drawer-overlay').onclick = () => toggleDrawer(false);
 
-  // Organização e Filtragem Inteligente da Tabela
-  const organizarEFiltrarTabela = () => {
+  // --- CARREGAMENTO DINÂMICO VIA API ---
+  const carregarAgendamentos = async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        agendamentos = await res.json();
+        renderizarTabela();
+      }
+    } catch (err) {
+      console.error('Erro ao buscar agendamentos:', err);
+    }
+  };
+
+  // Renderiza e filtra os dados dinâmicos no DOM
+  const renderizarTabela = () => {
     const q = search.value.toLowerCase().trim();
     const ativos = filtros.filter(f => f.checked).map(f => f.value);
     const dataFiltroIso = formatarIso(dataAtual);
     const ehHoje = dataFiltroIso === HOJE_STR;
+
+    // Limpa linhas anteriores mantendo as linhas estruturais de apoio
+    body.querySelectorAll('tr[data-id]').forEach(tr => tr.remove());
+
     const dividerRow = $('divider-row');
-
-    // Obtém todas as linhas de agendamento (ignorando empty-row e divider-row)
-    const linhas = [...body.querySelectorAll('tr[data-status]')];
-
     let visiveisDoDia = 0;
     let visiveisOutrasDatas = 0;
 
-    linhas.forEach(r => {
-      const dataItem = r.dataset.date;
-      const statusItem = r.dataset.status;
-      const nomeOuTel = r.querySelector('td:nth-child(2)').textContent.toLowerCase();
-
+    agendamentos.forEach(item => {
+      const statusItem = item.status || 'aguardando';
+      const nomeOuTel = `${item.clienteNome || ''} ${item.clienteTelefone || ''}`.toLowerCase();
       const atendeFiltros = ativos.includes(statusItem) && nomeOuTel.includes(q);
 
-      if (ehHoje) {
-        // REGRA PARA HOJE: Exibe agendamentos do dia no topo e TODOS os outros abaixo do divisor
-        r.hidden = !atendeFiltros;
+      const itemDataIso = item.data ? item.data.split('T')[0] : '';
+      const ehDataSelecionada = itemDataIso === dataFiltroIso;
 
-        if (dataItem === dataFiltroIso) {
-          body.insertBefore(r, dividerRow);
-          if (atendeFiltros) visiveisDoDia++;
-        } else {
-          body.appendChild(r);
-          if (atendeFiltros) visiveisOutrasDatas++;
-        }
-      } else {
-        // REGRA PARA OUTRAS DATAS: Oculta tudo e exibe estritamente o dia selecionado
-        const ehDataSelecionada = dataItem === dataFiltroIso;
-        
-        r.hidden = !(atendeFiltros && ehDataSelecionada);
+      if (!atendeFiltros) return;
+      if (!ehHoje && !ehDataSelecionada) return;
 
-        if (ehDataSelecionada) {
-          body.insertBefore(r, dividerRow);
-          if (atendeFiltros) visiveisDoDia++;
-        }
+      const tr = document.createElement('tr');
+      tr.dataset.id = item.id;
+      tr.dataset.status = statusItem;
+      tr.dataset.date = itemDataIso;
+
+      const [anoIn, mesIn, diaIn] = itemDataIso.split('-');
+      const dataFormatadaBR = `${diaIn}/${mesIn}`;
+
+      tr.innerHTML = `
+        <td class="time-col">
+          ${esc(item.hora)} 
+          ${ehDataSelecionada ? '' : `<small class="date-subtext">(${dataFormatadaBR})</small>`}
+        </td>
+        <td>
+          <strong class="client-name">${esc(item.clienteNome)}</strong>
+          <span class="client-phone">${esc(item.clienteTelefone)}</span>
+        </td>
+        <td>
+          <span class="badge-profile badge-frequente">Cliente</span>
+          <span class="metrics-text">Registrado</span>
+        </td>
+        <td>${esc(item.servico)}</td>
+        <td><span class="status-badge status-${statusItem}">${STATUS[statusItem] || statusItem}</span></td>
+        <td>
+          <select class="status-select">
+            <option value="">Mudar Status...</option>
+            ${opcoes}
+          </select>
+        </td>
+      `;
+
+      if (itemDataIso === dataFiltroIso) {
+        body.insertBefore(tr, dividerRow);
+        visiveisDoDia++;
+      } else if (ehHoje) {
+        body.appendChild(tr);
+        visiveisOutrasDatas++;
       }
     });
 
     const totalVisiveis = ehHoje ? (visiveisDoDia + visiveisOutrasDatas) : visiveisDoDia;
-    
-    // Oculta a linha divisória se não estiver na visualização de Hoje ou não houver outros itens
+
     if (dividerRow) {
       dividerRow.hidden = !ehHoje || visiveisOutrasDatas === 0;
     }
-    
-    // Exibe ou oculta a mensagem de lista vazia
+
     $('empty-row').hidden = totalVisiveis > 0;
   };
 
-  search.oninput = organizarEFiltrarTabela;
-  filtros.forEach(f => f.onchange = organizarEFiltrarTabela);
+  search.oninput = renderizarTabela;
+  filtros.forEach(f => f.onchange = renderizarTabela);
 
-  // Alteração dinâmica de Status
-  body.onchange = e => {
+  // Alteração dinâmica de Status conectada ao Backend
+  body.onchange = async e => {
     if (!e.target.matches('.status-select')) return;
-    const valor = e.target.value;
-    if (!valor) return;
+    const novoStatus = e.target.value;
+    if (!novoStatus) return;
 
     const linha = e.target.closest('tr');
-    const badge = linha.querySelector('.status-badge');
+    const id = linha.dataset.id;
 
-    linha.dataset.status = valor;
-    badge.className = `status-badge status-${valor}`;
-    badge.textContent = STATUS[valor];
-    e.target.value = '';
+    try {
+      const res = await fetch(`${API_URL}/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus })
+      });
 
-    organizarEFiltrarTabela();
+      if (res.ok) {
+        const index = agendamentos.findIndex(a => a.id == id);
+        if (index !== -1) agendamentos[index].status = novoStatus;
+        renderizarTabela();
+      } else {
+        alert('Erro ao atualizar status do agendamento.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
   };
 
-  // Submissão do formulário de criação
-  form.onsubmit = e => {
+  // Submissão do formulário de criação com POST para a API
+  form.onsubmit = async e => {
     e.preventDefault();
-    const dataDigitada = $('input-data').value;
-    const horaDigitada = $('input-hora').value;
-    const dataSelIso = formatarIso(dataAtual);
-    
-    const [anoIn, mesIn, diaIn] = dataDigitada.split('-');
-    const dataFormatadaBR = `${diaIn}/${mesIn}`;
-    const ehDataSelecionada = dataDigitada === dataSelIso;
 
-    const tr = document.createElement('tr');
-    tr.dataset.status = 'aguardando';
-    tr.dataset.date = dataDigitada;
+    const novoAgendamento = {
+      clienteTelefone: $('input-telefone').value.trim(),
+      clienteNome: $('input-cliente').value.trim(),
+      data: $('input-data').value,
+      hora: $('input-hora').value,
+      servico: $('input-servico').value,
+      status: 'aguardando'
+    };
 
-    tr.innerHTML = `
-      <td class="time-col">
-        ${horaDigitada} 
-        ${ehDataSelecionada ? '' : `<small class="date-subtext">(${dataFormatadaBR})</small>`}
-      </td>
-      <td>
-        <strong class="client-name">${esc($('input-cliente').value)}</strong>
-        <span class="client-phone">${esc($('input-telefone').value)}</span>
-      </td>
-      <td>
-        <span class="badge-profile badge-frequente">Novo Cliente</span>
-        <span class="metrics-text">0 Presenças / 0 Faltas</span>
-      </td>
-      <td>${esc($('input-servico').value)}</td>
-      <td><span class="status-badge status-aguardando">Aguardando</span></td>
-      <td>
-        <select class="status-select">
-          <option value="">Mudar Status...</option>
-          ${opcoes}
-        </select>
-      </td>`;
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoAgendamento)
+      });
 
-    body.appendChild(tr);
-    organizarEFiltrarTabela();
-    toggleDrawer(false);
+      if (res.ok) {
+        const criado = await res.json();
+        agendamentos.push(criado);
+        renderizarTabela();
+        toggleDrawer(false);
+      } else {
+        alert('Erro ao salvar agendamento.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
   };
 
-  // Inicialização do sistema com a data de HOJE da máquina
+  // Inicialização
   selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
+  carregarAgendamentos();
 });

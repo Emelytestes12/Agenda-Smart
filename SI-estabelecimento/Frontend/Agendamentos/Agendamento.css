@@ -1,31 +1,193 @@
-/* As regras globais já estão no global.css */
-/* Este arquivo mantém apenas especificidades da tela de Agendamento, adaptadas para o Dark Mode Premium */
+/* Especificidades da Tela de Agendamentos (Dark Mode Premium) */
 
-.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: 600; font-size: 14px; color: var(--text-main); }
-.cal-nav { width: 32px; height: 32px; font-size: 16px; color: var(--text-muted); background: transparent; border: 1px solid var(--border-color); border-radius: var(--raio); display: flex; align-items: center; justify-content: center; }
-.cal-nav:hover { background: #1a1a1a; color: var(--text-main); border-color: #333; }
+.calendar-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 20px; 
+  font-weight: 600; 
+  font-size: 14px; 
+  color: var(--text-main); 
+}
 
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 12px; margin-bottom: 32px; }
-.cal-day-name { font-size: 11px; font-weight: 600; color: var(--text-muted); padding-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-.cal-day { padding: 10px 0; border-radius: 6px; color: var(--text-muted); border: 1px solid transparent; }
-.cal-day:not(:empty) { cursor: pointer; background: #111; border-color: var(--border-color); }
-.cal-day:not(:empty):hover { background: #1a1a1a; color: var(--text-main); border-color: #333; }
-.cal-day.active { background: rgba(255, 94, 0, 0.1); color: var(--brand-blue); font-weight: 600; border-color: var(--brand-blue); box-shadow: var(--glow-subtle); }
+.cal-nav { 
+  width: 32px; 
+  height: 32px; 
+  font-size: 16px; 
+  color: var(--text-muted); 
+  background: transparent; 
+  border: 1px solid var(--border-color); 
+  border-radius: var(--raio, 8px); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 
-.checkbox-group { display: flex; flex-direction: column; gap: 12px; }
-.checkbox-item { display: flex; align-items: center; gap: 12px; font-size: 13px; cursor: pointer; color: var(--text-muted); font-weight: 400; transition: color 0.2s; }
-.checkbox-item:hover { color: var(--text-main); }
-.checkbox-item input { width: 16px; height: 16px; padding: 0; accent-color: var(--brand-blue); background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; }
+.cal-nav:hover { 
+  background: #1a1a1a; 
+  color: var(--text-main); 
+  border-color: #333; 
+}
 
-.date-controls { display: flex; align-items: center; gap: 16px; }
-.btn-today { padding: 10px 18px; border-radius: var(--raio); font-size: 13px; font-weight: 500; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
-.btn-today:hover { background: #1a1a1a; border-color: #333; }
+.calendar-grid { 
+  display: grid; 
+  grid-template-columns: repeat(7, 1fr); 
+  gap: 4px; 
+  text-align: center; 
+  font-size: 12px; 
+  margin-bottom: 32px; 
+}
 
-.schedule-table .empty-row td { padding: 80px 20px; text-align: center; color: var(--text-muted); font-size: 14px; border: 0; }
-.schedule-table .date-divider-row td { padding: 32px 0 16px; border: 0; background: var(--bg-primary); }
-.divider-label { display: flex; align-items: center; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-.divider-label::before, .divider-label::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); }
-.divider-label span { margin: 0 16px; padding: 6px 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; }
+.cal-day-name { 
+  font-size: 11px; 
+  font-weight: 600; 
+  color: var(--text-muted); 
+  padding-bottom: 12px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px; 
+}
 
-.status-select { width: auto; padding: 8px 32px 8px 12px; font-size: 12px; background-color: #1a1a1a; font-weight: 500; border-radius: 6px; }
-.status-select:focus { box-shadow: none; }
+.cal-day { 
+  padding: 10px 0; 
+  border-radius: 6px; 
+  color: var(--text-muted); 
+  border: 1px solid transparent; 
+}
+
+.cal-day:not(:empty) { 
+  cursor: pointer; 
+  background: #111; 
+  border-color: var(--border-color); 
+}
+
+.cal-day:not(:empty):hover { 
+  background: #1a1a1a; 
+  color: var(--text-main); 
+  border-color: #333; 
+}
+
+.cal-day.active { 
+  background: rgba(255, 94, 0, 0.1); 
+  color: var(--brand-blue, #ff5e00); 
+  font-weight: 600; 
+  border-color: var(--brand-blue, #ff5e00); 
+  box-shadow: var(--glow-subtle); 
+}
+
+.checkbox-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+}
+
+.checkbox-item { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  font-size: 13px; 
+  cursor: pointer; 
+  color: var(--text-muted); 
+  font-weight: 400; 
+  transition: color 0.2s; 
+}
+
+.checkbox-item:hover { 
+  color: var(--text-main); 
+}
+
+.checkbox-item input { 
+  width: 16px; 
+  height: 16px; 
+  padding: 0; 
+  accent-color: var(--brand-blue, #ff5e00); 
+  background: #1a1a1a; 
+  border: 1px solid var(--border-color); 
+  border-radius: 4px; 
+  cursor: pointer; 
+}
+
+.date-controls { 
+  display: flex; 
+  align-items: center; 
+  gap: 16px; 
+}
+
+.btn-today { 
+  padding: 10px 18px; 
+  border-radius: var(--raio, 8px); 
+  font-size: 13px; 
+  font-weight: 500; 
+  background: transparent; 
+  border: 1px solid var(--border-color); 
+  color: var(--text-main); 
+  cursor: pointer;
+}
+
+.btn-today:hover { 
+  background: #1a1a1a; 
+  border-color: #333; 
+}
+
+/* Regras de Exibição Dinâmica da Tabela */
+.schedule-table .empty-row td { 
+  padding: 80px 20px; 
+  text-align: center; 
+  color: var(--text-muted); 
+  font-size: 14px; 
+  border: 0; 
+}
+
+.schedule-table .date-divider-row td { 
+  padding: 32px 0 16px; 
+  border: 0; 
+  background: var(--bg-primary); 
+}
+
+.divider-label { 
+  display: flex; 
+  align-items: center; 
+  font-size: 11px; 
+  font-weight: 600; 
+  color: var(--text-muted); 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+}
+
+.divider-label::before, .divider-label::after { 
+  content: ''; 
+  flex: 1; 
+  border-bottom: 1px solid var(--border-color); 
+}
+
+.divider-label span { 
+  margin: 0 16px; 
+  padding: 6px 16px; 
+  background: var(--bg-secondary); 
+  border: 1px solid var(--border-color); 
+  border-radius: 20px; 
+}
+
+.status-select { 
+  width: auto; 
+  padding: 8px 32px 8px 12px; 
+  font-size: 12px; 
+  background-color: #1a1a1a; 
+  font-weight: 500; 
+  border-radius: 6px; 
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.status-select:focus { 
+  box-shadow: none; 
+  border-color: var(--brand-blue, #ff5e00);
+}
+
+.date-subtext {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
