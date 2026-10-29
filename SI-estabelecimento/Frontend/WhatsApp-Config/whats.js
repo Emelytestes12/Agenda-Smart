@@ -1,26 +1,105 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-  const inputSlot = $('input-slot-info'), previewSlot = $('preview-slot');
+  
+  // URL base do Backend Express
+  const API_URL = 'http://localhost:3000/api/whatsapp';
 
-  inputSlot.oninput = e => previewSlot.textContent = e.target.value || 'Horário não especificado';
+  const inputSlot = $('input-slot-info');
+  const previewSlot = $('preview-slot');
 
+  // Atualiza a prévia dinamicamente ao digitar
+  if (inputSlot && previewSlot) {
+    inputSlot.oninput = e => {
+      previewSlot.textContent = e.target.value.trim() || 'Horário não especificado';
+    };
+  }
+
+  // 1. Salvar Regra de Lembrete
   $('btn-save-reminders').onclick = () => {
-    const time = $('select-antecedence').options[$('select-antecedence').selectedIndex].text;
-    alert($('toggle-reminders').checked ? `Configuração Salva!\nOs lembretes automáticos serão enviados ${time}.` : 'Aviso: Os lembretes automáticos de confirmação foram desativados.');
+    const enabled = $('toggle-reminders').checked;
+    const antecedence = $('select-antecedence').options[$('select-antecedence').selectedIndex].text;
+    
+    if (enabled) {
+      alert(`Configuração Salva!\nOs lembretes automáticos serão enviados com ${antecedence} de antecedência.`);
+    } else {
+      alert('Aviso: Os lembretes automáticos de confirmação foram desativados.');
+    }
   };
 
-  $('btn-send-slot-notify').onclick = () => {
-    const client = $('select-queue-position').options[$('select-queue-position').selectedIndex].text;
+  // 2. Disparar Notificação de Vaga (Fila)
+  $('btn-send-slot-notify').onclick = async () => {
+    const phone = $('input-recipient-phone').value.trim();
     const slot = inputSlot.value.trim();
+
+    if (!phone) return alert('Por favor, informe o telefone do destinatário com DDD.');
     if (!slot) return alert('Por favor, informe o horário da vaga liberada.');
-    alert(`Sucesso! Notificação de vaga (${slot}) enviada no WhatsApp de: ${client}`);
+
+    const btn = $('btn-send-slot-notify');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const response = await fetch(`${API_URL}/send-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone,
+          message: `Olá! Uma vaga vagou para *${slot}* na Agenda Smart. Deseja garantir esse horário? Responda SIM para confirmar.`
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert(`Sucesso! Notificação de vaga enviada via WhatsApp para ${phone}.`);
+      } else {
+        alert(`Falha ao enviar mensagem: ${data.error || 'Erro desconhecido'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor backend.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Disparar Notificação';
+    }
   };
 
-  $('btn-send-broadcast').onclick = () => {
+  // 3. Disparar Comunicado Direto
+  $('btn-send-broadcast').onclick = async () => {
+    const phone = $('input-broadcast-phone').value.trim();
     const text = $('textarea-announcement').value.trim();
-    const target = $('select-broadcast-target').options[$('select-broadcast-target').selectedIndex].text;
+
+    if (!phone) return alert('Por favor, informe o telefone destinatário.');
     if (!text) return alert('Escreva o texto do comunicado antes de enviar.');
-    alert(`Comunicado enviado com sucesso!\n\nPúblico: ${target}\nMensagem: "${text}"`);
-    $('textarea-announcement').value = '';
+
+    const btn = $('btn-send-broadcast');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const response = await fetch(`${API_URL}/send-text`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone,
+          message: text
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        alert('Comunicado enviado com sucesso no WhatsApp!');
+        $('textarea-announcement').value = '';
+      } else {
+        alert(`Falha ao enviar comunicado: ${data.error || 'Erro desconhecido'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor backend.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Disparar Comunicado';
+    }
   };
 });

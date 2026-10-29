@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurações do WhatsApp</title>
+  <title>Configurações do WhatsApp - Agenda Smart</title>
   <link rel="icon" type="image/png" href="../Logo/logotipo.png">
   <link rel="stylesheet" href="../global.css">
   <link rel="stylesheet" href="whats.css">
@@ -15,12 +15,17 @@
         <img src="../Logo/logotipo.png" alt="Agenda Smart Logo" class="logo-img">
       </div>
       <div class="status-connection-card">
-        <div class="connection-header"><span class="status-dot online"></span><strong>WhatsApp Conectado</strong></div>
-        <p class="phone-number">(11) 99999-8888</p>
-        <span class="metrics-text">Status: Bot Operacional</span>
+        <div class="connection-header">
+          <span class="status-dot online"></span>
+          <strong>WhatsApp Conectado</strong>
+        </div>
+        <p class="phone-number" id="whatsapp-status-phone">+55 (83) Configurado</p>
+        <span class="metrics-text">Status: API de Testes Ativa</span>
       </div>
       <h3 class="section-title">REGRAS DE DISPARO</h3>
-      <div class="sidebar-info-box"><p><strong>Automação Ativa:</strong> As respostas de confirmação atualizam a agenda e a fila instantaneamente.</p></div>
+      <div class="sidebar-info-box">
+        <p><strong>Automação Ativa:</strong> As respostas de confirmação atualizam a agenda e a fila instantaneamente.</p>
+      </div>
     </aside>
 
     <main class="main-content">
@@ -29,47 +34,68 @@
       </header>
 
       <div class="dashboard-grid">
+        <!-- Card 1: Lembrete -->
         <section class="config-card">
           <div class="card-header">
-            <h3 class="title-sm">1. Lembrete de Confirmação Automática</h3>
-            <label class="switch"><input type="checkbox" id="toggle-reminders" checked><span class="slider round"></span></label>
+            <h3 class="title-sm">1. Lembrete de Confirmação</h3>
+            <label class="switch">
+              <input type="checkbox" id="toggle-reminders" checked>
+              <span class="slider round"></span>
+            </label>
           </div>
-          <p class="card-desc">Envia mensagem solicitando confirmação. Ao clicar em "Confirmar", o agendamento é validado.</p>
+          <p class="card-desc">Envia mensagem automatizada solicitando confirmação do agendamento.</p>
           <div class="form-group">
             <label for="select-antecedence">Antecedência:</label>
-            <select id="select-antecedence"><option value="1">1 Dia antes</option><option value="2">2 Dias antes</option><option value="12h">12 Horas antes</option><option value="6h">6 Horas antes</option></select>
+            <select id="select-antecedence">
+              <option value="1d">1 Dia antes</option>
+              <option value="2d">2 Dias antes</option>
+              <option value="12h">12 Horas antes</option>
+              <option value="6h">6 Horas antes</option>
+            </select>
           </div>
           <div class="chat-preview-box">
-            <span class="preview-tag">Prévia do Botão Interativo:</span>
-            <div class="chat-bubble">Olá <strong>[Nome]</strong>! Confirmamos seu horário para amanhã às <strong>[Horário]</strong> com <strong>[Profissional]</strong>?<div class="whatsapp-btn-mock">Confirmar Agendamento</div><div class="whatsapp-btn-mock danger">Cancelar / Reagendar</div></div>
+            <span class="preview-tag">Prévia da Mensagem:</span>
+            <div class="chat-bubble">
+              Olá <strong>[Nome]</strong>! Confirmamos seu horário para amanhã às <strong>[Horário]</strong> com <strong>[Profissional]</strong>?
+              <div class="whatsapp-btn-mock">Confirmar Agendamento</div>
+              <div class="whatsapp-btn-mock danger">Cancelar / Reagendar</div>
+            </div>
           </div>
           <button id="btn-save-reminders" class="btn-primary btn-block">Salvar Regra de Lembrete</button>
         </section>
 
+        <!-- Card 2: Fila de Espera -->
         <section class="config-card">
-          <div class="card-header"><h3 class="title-sm">2. Notificar Vaga por Posição (Fila)</h3></div>
-          <p class="card-desc">Selecione a posição da fila para disparar a notificação da vaga.</p>
+          <div class="card-header">
+            <h3 class="title-sm">2. Notificar Vaga na Fila</h3>
+          </div>
+          <p class="card-desc">Selecione um cliente da fila e envie uma mensagem direta de vaga liberada.</p>
           <div class="form-group">
-            <label for="select-queue-position">Cliente / Posição:</label>
-            <select id="select-queue-position"><option value="1">1º da Fila - Ana Beatriz (Maquiagem)</option><option value="2">2º da Fila - Carlos Eduardo (Corte)</option><option value="3">3º da Fila - Fernanda Lima (Manicure)</option></select>
+            <label for="input-recipient-phone">Telefone do Destinatário (WhatsApp):</label>
+            <input type="text" id="input-recipient-phone" placeholder="Ex: 5583999999999 (com DDD)">
           </div>
           <div class="form-group">
             <label for="input-slot-info">Horário da Vaga Liberada:</label>
-            <input type="text" id="input-slot-info" value="Hoje às 15:00 - Profissional Carla" placeholder="Ex: Hoje às 15:00">
+            <input type="text" id="input-slot-info" placeholder="Ex: Hoje às 15:00 - Profissional Carla">
           </div>
           <div class="chat-preview-box">
             <span class="preview-tag">Mensagem Enviada:</span>
-            <div class="chat-bubble">Olá! Uma vaga vagou para <strong><span id="preview-slot">Hoje às 15:00</span></strong>. Deseja garantir esse horário?<div class="whatsapp-btn-mock">Sim! Quero essa vaga</div></div>
+            <div class="chat-bubble">
+              Olá! Uma vaga vagou para <strong id="preview-slot">Horário não especificado</strong>. Deseja garantir esse horário?
+            </div>
           </div>
           <button id="btn-send-slot-notify" class="btn-primary btn-block">Disparar Notificação</button>
         </section>
 
+        <!-- Card 3: Comunicado Geral -->
         <section class="config-card full-width">
-          <div class="card-header"><h3 class="title-sm">3. Envio de Comunicados Rápidos</h3></div>
-          <p class="card-desc">Dispare avisos, promoções ou recados importantes.</p>
+          <div class="card-header">
+            <h3 class="title-sm">3. Envio de Comunicados Rápidos</h3>
+          </div>
+          <p class="card-desc">Dispare avisos, promoções ou recados para o número cadastrado.</p>
           <div class="form-group">
-            <label for="select-broadcast-target">Enviar para:</label>
-            <select id="select-broadcast-target"><option value="queue">Apenas Pessoas da Fila</option><option value="today">Clientes Agendados Hoje</option><option value="all">Todos os Clientes</option></select>
+            <label for="input-broadcast-phone">Telefone Destinatário:</label>
+            <input type="text" id="input-broadcast-phone" placeholder="Ex: 5583999999999">
           </div>
           <div class="form-group">
             <label for="textarea-announcement">Texto do Comunicado:</label>

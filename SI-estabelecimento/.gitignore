@@ -1,0 +1,13 @@
+# Ignorar dependências em qualquer subpasta
+node_modules/
+**/node_modules/
+
+# Ignorar ficheiros de variáveis de ambiente e chaves
+.env
+**/.env
+*.env
+
+# Ficheiros do sistema/IDE
+.vscode/
+.DS_Store
+Thumbs.db
