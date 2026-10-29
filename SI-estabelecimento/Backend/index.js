@@ -7,7 +7,7 @@ import whatsappRoutes from './src/routes/whatsappRoutes.js';
 import agendamentosRoutes from './src/routes/agendamentosRoutes.js';
 import clientesRoutes from './src/routes/clientesRoutes.js';
 import dashboardRoutes from './src/routes/dashboardRoutes.js';
-import filaRoutes from './src/routes/filaRoutes.js';
+import filaRoutes from './src/routes/filaEsperaRoutes.js';
 import minhaAgendaRoutes from './src/routes/minhaAgendaRoutes.js';
 
 dotenv.config();
