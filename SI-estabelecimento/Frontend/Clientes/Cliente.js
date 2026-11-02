@@ -78,18 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ações nos botões da tabela (Editar e Agendar)
   body.onclick = e => {
+    const btnAgendar = e.target.closest('.btn-agendar');
+    const btnEditar = e.target.closest('.btn-editar');
     const tr = e.target.closest('tr[data-id]');
-    if (!tr) return;
-    
-    const id = tr.dataset.id;
-    const cliente = clientes.find(c => c.id == id);
 
-    if (e.target.matches('.btn-editar') || e.target.closest('.btn-editar')) {
-      toggleDrawer(true, cliente);
+    if (btnAgendar && tr) {
+      const nome = tr.cells[0].textContent;
+      const tel = tr.cells[1].textContent;
+      window.location.href = `../Agendamentos/Agendamento.html?nome=${encodeURIComponent(nome)}&tel=${encodeURIComponent(tel)}`;
+      return;
     }
 
-    if (e.target.matches('.btn-agendar') || e.target.closest('.btn-agendar')) {
-      window.location.href = '../Agendamentos/Agendamento.html';
+    if (btnEditar && tr) {
+      const id = tr.dataset.id;
+      const cliente = clientes.find(c => c.id == id);
+      if (cliente) toggleDrawer(true, cliente);
     }
   };
 

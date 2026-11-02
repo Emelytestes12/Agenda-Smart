@@ -91,6 +91,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // --- SINCRONIZAÇÃO EM TEMPO REAL ---
+  // 1. Atualiza ao trocar de aba ou voltar para o Dashboard
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) carregarDashboard(periodoAtual);
+  });
+
+  // 2. Auto-refresh a cada 30 segundos para manter os dados "vivos"
+  setInterval(() => carregarDashboard(periodoAtual), 30000);
+
   // Inicializa com o período "Hoje"
   carregarDashboard('today');
 });

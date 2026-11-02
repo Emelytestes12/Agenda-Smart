@@ -88,7 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!aberto) form.reset();
     sincronizarInputDataModal();
   };
-  $('btn-open-drawer').onclick = () => toggleDrawer(true);
+  // --- LOGICA DE NOVO AGENDAMENTO (Cadastro Primeiro) ---
+  $('btn-open-drawer').onclick = () => {
+    const nome = $('input-cliente').value;
+    if (!nome || nome.includes('Selecione')) {
+      alert('Para um novo agendamento, selecione o cliente na tela de "Clientes" primeiro.');
+      window.location.href = '../Clientes/Cliente.html';
+    } else {
+      toggleDrawer(true);
+    }
+  };
   $('btn-close-drawer').onclick = $('drawer-overlay').onclick = () => toggleDrawer(false);
 
   // --- CARREGAMENTO DINÂMICO VIA API ---
@@ -243,6 +252,18 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Erro ao conectar com o servidor.');
     }
   };
+
+  // --- CAPTURAR DADOS DA URL ---
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('nome')) {
+    const nome = params.get('nome');
+    const tel = params.get('tel');
+    $('input-cliente').value = nome;
+    $('input-telefone').value = tel;
+    
+    // Pequeno delay para garantir que a UI carregou e abrir o drawer automaticamente
+    setTimeout(() => toggleDrawer(true), 300);
+  }
 
   // Inicialização
   selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
