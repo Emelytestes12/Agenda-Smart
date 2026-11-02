@@ -90,12 +90,16 @@
           <input type="text" id="input-telefone" readonly placeholder="---" style="background: rgba(255,255,255,0.05); color: #888; cursor: not-allowed;">
         </div>
         <div class="form-group">
-          <label for="input-data">Data:</label>
-          <input type="date" id="input-data" required>
+          <label for="input-data">Data Disponível:</label>
+          <select id="input-data" required>
+            <option value="">Selecione o serviço primeiro...</option>
+          </select>
         </div>
         <div class="form-group">
-          <label for="input-hora">Horário:</label>
-          <input type="time" id="input-hora" required value="09:00">
+          <label for="input-hora">Horário Disponível:</label>
+          <select id="input-hora" required>
+            <option value="">Selecione a data primeiro...</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="input-servico">Serviço:</label>

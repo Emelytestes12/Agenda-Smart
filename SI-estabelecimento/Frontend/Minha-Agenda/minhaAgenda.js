@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let mesCalendario = dataSelecionada.getMonth();
   let anoCalendario = dataSelecionada.getFullYear();
 
-  const horarios = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`);
   const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   const nomesDiasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
@@ -144,12 +143,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const renderizarGridHorarios = () => {
     const body = $('corpoGrid');
-    body.innerHTML = horarios.map(hora => {
+    const dataIso = formatarIso(dataSelecionada);
+    const agendamentosDoDia = agendamentos.filter(item => item.data === dataIso);
+
+    if (agendamentosDoDia.length === 0) {
+      body.innerHTML = `<tr><td colspan="${profissionais.length + 1}" style="text-align: center; padding: 40px; color: var(--text-light);">Nenhum horário cadastrado para este dia. Clique em "+ Adicionar Horário" para começar.</td></tr>`;
+      return;
+    }
+
+    // Pega todos os horários únicos registrados para este dia e ordena
+    const horasDoDia = [...new Set(agendamentosDoDia.map(item => item.hora))].sort();
+
+    body.innerHTML = horasDoDia.map(hora => {
       const tds = profissionais.map(p => `<td data-prof="${esc(p.nome)}" data-hora="${hora}"></td>`).join('');
       return `<tr><td class="time-col">${hora}</td>${tds}</tr>`;
     }).join('');
 
-    agendamentos.filter(item => item.data === formatarIso(dataSelecionada)).forEach(item => {
+    agendamentosDoDia.forEach(item => {
       const td = document.querySelector(`td[data-prof="${item.prof}"][data-hora="${item.hora}"]`);
       if (td) {
         td.innerHTML += `

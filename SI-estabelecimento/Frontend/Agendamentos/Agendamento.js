@@ -4,6 +4,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // State local dos agendamentos vindos do banco de dados
   let agendamentos = [];
+  let slotsDisponiveis = []; // Blocos vindos da "Minha Agenda"
+
+  // --- BUSCAR SLOTS DA MINHA AGENDA ---
+  const carregarSlotsDisponiveis = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/minha-agenda');
+      if (res.ok) {
+        const data = await res.json();
+        slotsDisponiveis = data.agendamentos || []; // AgendaItems no banco
+        popularSelectServicos();
+      }
+    } catch (err) {
+      console.error('Erro ao buscar slots:', err);
+    }
+  };
+
+  const popularSelectServicos = () => {
+    const select = $('input-servico');
+    if (!select) return;
+    const combos = [...new Set(slotsDisponiveis.map(s => `${s.servico} (${s.prof})`))];
+    
+    select.innerHTML = '<option value="">Selecione o serviço...</option>' + 
+      combos.map(c => `<option value="${c}">${c}</option>`).join('');
+  };
+
+  // Ao mudar o serviço, populamos as datas disponíveis para aquele profissional
+  const setupServicoChange = () => {
+    const inputServico = $('input-servico');
+    const inputData = $('input-data');
+    const inputHora = $('input-hora');
+    
+    if (!inputServico) return;
+    
+    inputServico.onchange = () => {
+      const valor = inputServico.value;
+      inputData.innerHTML = '<option value="">Selecione a data...</option>';
+      inputHora.innerHTML = '<option value="">Selecione a data primeiro...</option>';
+      
+      if (!valor) return;
+      
+      const [servico, prof] = valor.replace(')', '').split(' (');
+      const datasDisponiveis = [...new Set(slotsDisponiveis
+        .filter(s => s.servico === servico && s.prof === prof)
+        .map(s => s.data))].sort();
+      
+      if (datasDisponiveis.length > 0) {
+        inputData.innerHTML += datasDisponiveis.map(d => {
+          const [ano, mes, dia] = d.split('-');
+          return `<option value="${d}">${dia}/${mes}/${ano}</option>`;
+        }).join('');
+      } else {
+        inputData.innerHTML = '<option value="">Nenhuma data disponível</option>';
+      }
+    };
+  };
+
+  // Ao mudar a data, populamos os horários disponíveis
+  const setupDataChange = () => {
+    const inputServico = $('input-servico');
+    const inputData = $('input-data');
+    const inputHora = $('input-hora');
+    
+    if (!inputData) return;
+    
+    inputData.onchange = () => {
+      const valorServico = inputServico.value;
+      const valorData = inputData.value;
+      inputHora.innerHTML = '<option value="">Selecione o horário...</option>';
+      
+      if (!valorServico || !valorData) return;
+      
+      const [servico, prof] = valorServico.replace(')', '').split(' (');
+      const horasDisponiveis = slotsDisponiveis
+        .filter(s => s.servico === servico && s.prof === prof && s.data === valorData)
+        .map(s => s.hora)
+        .sort();
+      
+      if (horasDisponiveis.length > 0) {
+        inputHora.innerHTML += horasDisponiveis.map(h => `<option value="${h}">${h}</option>`).join('');
+      } else {
+        inputHora.innerHTML = '<option value="">Nenhum horário disponível</option>';
+      }
+    };
+  };
 
   // Status e utilitários gerais
   const STATUS = { confirmado: 'Confirmado', aguardando: 'Aguardando', finalizado: 'Finalizado', cancelado: 'Cancelado' };
@@ -47,15 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
     grid.innerHTML = diasHeader + brancos + numDias;
   };
 
-  const sincronizarInputDataModal = () => {
-    $('input-data').value = formatarIso(dataAtual);
-  };
-
   const selecionarDia = (dia, mes, ano) => {
     dataAtual = new Date(ano, mes, dia);
     mesCal = mes; anoCal = ano;
     renderizarCalendario();
-    sincronizarInputDataModal();
 
     const dataSelIso = formatarIso(dataAtual);
     const ehHoje = dataSelIso === HOJE_STR;
@@ -86,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleDrawer = aberto => {
     ['drawer', 'drawer-overlay'].forEach(id => $(id).classList.toggle('open', aberto));
     if (!aberto) form.reset();
-    sincronizarInputDataModal();
   };
   // --- LOGICA DE NOVO AGENDAMENTO (Cadastro Primeiro) ---
   $('btn-open-drawer').onclick = () => {
@@ -268,4 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicialização
   selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
   carregarAgendamentos();
+  carregarSlotsDisponiveis();
+  setupServicoChange();
+  setupDataChange();
 });
