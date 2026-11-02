@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-  const API_URL = 'http://localhost:3000/api/fila-espera';
+  const API_URL = 'http://localhost:3000/api/fila';
 
   let fila = [];
 
