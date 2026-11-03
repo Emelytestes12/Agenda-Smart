@@ -48,6 +48,24 @@ router.get('/stats', async (req, res) => {
       ? Number(((confirmados / totalAgendamentos) * 100).toFixed(1)) 
       : 100.0;
 
+    const totalRespostasFila = await prisma.filaEspera.count({
+      where: { status: { in: ['aceito', 'recusado'] } }
+    }).catch(() => 0);
+    
+    const aceitosFila = await prisma.filaEspera.count({
+      where: { status: 'aceito' }
+    }).catch(() => 0);
+
+    const logs = await prisma.logAtividade.findMany({
+      where: { createdAt: { gte: dataInicio } },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    }).catch(() => []);
+
+    const conversionRate = totalRespostasFila > 0 
+      ? Math.round((aceitosFila / totalRespostasFila) * 100) 
+      : 100;
+
     const efficiencyPct = Math.max(0, 100 - Math.round(noshowRate));
 
     return res.status(200).json({
@@ -55,18 +73,16 @@ router.get('/stats', async (req, res) => {
       noshowRate,
       occupancyRate,
       avgTime: '2.1 min',
-      conversionRate: totalFila > 0 ? 88 : 100,
-      savedCount: confirmados,
+      conversionRate,
+      savedCount: aceitosFila,
       lostCount: cancelados,
       efficiencyPct,
-      activities: [
-        {
-          tipo: 'success',
-          titulo: 'Métricas Sincronizadas',
-          descricao: `Dados atualizados com sucesso via banco de dados (${period || 'hoje'}).`,
-          tempo: 'Agora'
-        }
-      ]
+      activities: logs.map(l => ({
+        tipo: l.tipo,
+        titulo: l.titulo,
+        descricao: l.descricao,
+        tempo: 'Recente'
+      }))
     });
   } catch (error) {
     console.error('Erro ao gerar estatísticas do dashboard:', error);

@@ -190,25 +190,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (item.status === 'disparado') disparosHoje++;
 
+      // Badge do status no WhatsApp
       let badgeHtml = '';
-      if (item.status === 'disparado') {
-        badgeHtml = `<span class="status-badge status-disparado">Zap Disparado</span>`;
+      if (item.status === 'notificado') {
+        badgeHtml = `<span class="status-badge status-disparado">📱 Notificado / Aguardando</span>`;
       } else if (item.status === 'aceito') {
-        badgeHtml = `<span class="status-badge status-aceito">Aceitou via Zap</span>`;
+        badgeHtml = `<span class="status-badge status-aceito">Vaga Aceita</span>`;
+      } else if (item.status === 'recusado') {
+        badgeHtml = `<span class="status-badge status-cancelado">Vaga Recusada</span>`;
       } else {
         badgeHtml = `<span class="status-badge status-aguardando">Na Fila</span>`;
       }
 
+      // Botões de ação baseados no status
       let acoesHtml = '';
       if (item.status === 'aceito') {
         acoesHtml = `
-          <button class="btn-action btn-call btn-fit">Confirmar Encaixe</button>
-          <button class="btn-action btn-remove">Remover</button>
+          <button class="btn-action btn-call btn-fit">Confirmar na Agenda</button>
+          <button class="btn-action btn-remove">Remover da Fila</button>
         `;
-      } else if (item.status === 'disparado') {
+      } else if (item.status === 'notificado') {
         acoesHtml = `
-          <button class="btn-action btn-call btn-fit">Encaixar</button>
-          <button class="btn-action btn-resend">Reenviar Zap</button>
+          <button class="btn-action btn-resend btn-simulate-yes">Simular Aceite</button>
+          <button class="btn-action btn-remove btn-simulate-no">Simular Recusa</button>
+        `;
+      } else if (item.status === 'recusado') {
+        acoesHtml = `
+          <button class="btn-action btn-resend btn-notify">Tentar Outro Horário</button>
+          <button class="btn-action btn-remove">Remover</button>
         `;
       } else {
         acoesHtml = `
@@ -260,28 +269,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!item) return;
 
     if (e.target.matches('.btn-fit')) {
+      // Confirmar encaixe final na agenda e remover da fila
       try {
         const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
         if (res.ok) {
           fila = fila.filter(f => f.id != id);
           renderizarFila();
-          alert(`Cliente ${item.clienteNome} encaixado(a) com sucesso!`);
+          alert(`Agendamento de ${item.clienteNome} confirmado na agenda principal!`);
         }
       } catch (err) {
         console.error(err);
       }
-    } else if (e.target.matches('.btn-notify, .btn-resend')) {
+    } else if (e.target.matches('.btn-notify')) {
+      // Abre prompt para digitar o horário da vaga
+      const horario = prompt(`Digite o horário da vaga para ${item.clienteNome}:`, "09:00");
+      if (!horario) return;
+
       try {
         const res = await fetch(`${API_URL}/${id}/notificar`, {
-          method: 'PATCH',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'disparado' })
+          body: JSON.stringify({ horario })
         });
 
         if (res.ok) {
-          item.status = 'disparado';
+          const atualizado = await res.json();
+          Object.assign(item, atualizado);
           renderizarFila();
-          alert(`Mensagem WhatsApp enviada para ${item.clienteNome}!`);
+          alert(`Notificação enviada para ${item.clienteNome} às ${horario}!`);
+        } else {
+          const err = await res.json();
+          alert(`Erro: ${err.error}`);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    } else if (e.target.matches('.btn-simulate-yes, .btn-simulate-no')) {
+      // Simula a resposta do bot (Sim/Não)
+      const resposta = e.target.matches('.btn-simulate-yes') ? 'sim' : 'nao';
+      try {
+        const res = await fetch(`${API_URL}/${id}/responder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resposta })
+        });
+
+        if (res.ok) {
+          const atualizado = await res.json();
+          Object.assign(item, atualizado);
+          renderizarFila();
+          alert(resposta === 'sim' ? 'Vaga aceita pelo cliente!' : 'Vaga recusada pelo cliente.');
         }
       } catch (err) {
         console.error(err);
