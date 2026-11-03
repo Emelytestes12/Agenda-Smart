@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 // Importação das rotas das 6 telas
-import whatsappRoutes from './src/routes/whatsappRoutes.js';
+import notificacoesRoutes from './src/routes/notificacoesRoutes.js';
 import agendamentosRoutes from './src/routes/agendamentosRoutes.js';
 import clientesRoutes from './src/routes/clientesRoutes.js';
 import dashboardRoutes from './src/routes/dashboardRoutes.js';
@@ -19,7 +19,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // Conectando os endpoints das 6 telas
-app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/notificacoes', notificacoesRoutes);
 app.use('/api/agendamentos', agendamentosRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/dashboard', dashboardRoutes);

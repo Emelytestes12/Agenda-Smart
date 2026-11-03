@@ -1,5 +1,6 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
+import { sendTelegramNotification } from '../lib/telegram.js';
 
 const router = express.Router();
 
@@ -46,7 +47,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// 3. Notificar Vaga (Simulação - Sem WhatsApp)
+// 3. Notificar Vaga via Telegram
 router.post('/:id/notificar', async (req, res) => {
   try {
     const { id } = req.params;
@@ -57,7 +58,18 @@ router.post('/:id/notificar', async (req, res) => {
     const item = await prisma.filaEspera.findUnique({ where: { id: Number(id) } });
     if (!item) return res.status(404).json({ error: 'Registro da fila não encontrado.' });
 
-    // Apenas atualiza o status na fila (simulando que foi notificado)
+    // Normaliza a data para exibição (DD/MM/YYYY)
+    const dataBR = item.dataDesejada.split('-').reverse().join('/');
+
+    // Modelo dinâmico da mensagem de vaga
+    const mensagem = `Olá ${item.clienteNome}! Temos uma vaga disponível para o serviço de ${item.servico} com o(a) profissional ${item.profissional} no dia ${dataBR} às ${horario}. Deseja preencher essa vaga e garantir esse horário?`;
+
+    const resultado = await sendTelegramNotification(mensagem);
+
+    if (!resultado.ok) {
+      return res.status(400).json({ error: resultado.error || 'Erro ao disparar a notificação.' });
+    }
+
     const atualizado = await prisma.filaEspera.update({
       where: { id: Number(id) },
       data: {
@@ -66,12 +78,11 @@ router.post('/:id/notificar', async (req, res) => {
       }
     });
 
-    // Registra a notificação no log de atividades do sistema
     await prisma.logAtividade.create({
       data: {
         tipo: 'info',
-        titulo: 'VAGA NOTIFICADA (SISTEMA)',
-        descricao: `Notificação de vaga para ${item.clienteNome} às ${horario}. WhatsApp desativado.`,
+        titulo: 'VAGA NOTIFICADA',
+        descricao: `Notificação de vaga enviada via Telegram para ${item.clienteNome} às ${horario}.`,
         tempo: 'Agora'
       }
     });

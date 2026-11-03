@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurações do WhatsApp - Agenda Smart</title>
+  <title>Notificações (Telegram) - Agenda Smart</title>
   <link rel="icon" type="image/png" href="../Logo/logotipo.png">
   <link rel="stylesheet" href="../global.css">
   <link rel="stylesheet" href="whats.css">
@@ -17,10 +17,10 @@
       <div class="status-connection-card" id="connection-card">
         <div class="connection-header">
           <span class="status-dot" id="status-dot"></span>
-          <strong id="connection-title">WhatsApp Desativado</strong>
+          <strong id="connection-title">Verificando conexão...</strong>
         </div>
-        <p class="phone-number" id="whatsapp-status-phone">Modo Simulação</p>
-        <span class="metrics-text" id="connection-subtext">Envios reais desativados</span>
+        <p class="phone-number" id="whatsapp-status-phone">Telegram Bot API</p>
+        <span class="metrics-text" id="connection-subtext">Carregando status do bot</span>
       </div>
       <h3 class="section-title">REGRAS DE DISPARO</h3>
       <div class="sidebar-info-box">
@@ -30,7 +30,7 @@
 
     <main class="main-content">
       <header class="top-bar">
-        <h2 class="title">Automações do WhatsApp</h2>
+        <h2 class="title">Notificações Automáticas (Telegram)</h2>
       </header>
 
       <div class="dashboard-grid">
@@ -43,7 +43,7 @@
               <span class="slider round"></span>
             </label>
           </div>
-          <p class="card-desc">Envia mensagem simulada solicitando confirmação do agendamento.</p>
+          <p class="card-desc">Envia ao seu Telegram a mensagem de confirmação do agendamento.</p>
           <div class="form-group">
             <label for="select-antecedence">Antecedência:</label>
             <select id="select-antecedence">
@@ -62,24 +62,24 @@
             </div>
           </div>
           <button id="btn-save-reminders" class="btn-primary btn-block">Salvar Regra de Lembrete</button>
-          <button id="btn-test-reminder" class="btn-secondary btn-block" style="margin-top: 10px;">Testar Lembrete (Simulação)</button>
+          <button id="btn-test-reminder" class="btn-secondary btn-block" style="margin-top: 10px;">Testar Lembrete (Telegram)</button>
         </section>
 
         <!-- Card 2: Comunicado Geral -->
         <section class="config-card">
           <div class="card-header">
-            <h3 class="title-sm">2. Simulação de Comunicados</h3>
+            <h3 class="title-sm">2. Comunicados</h3>
           </div>
-          <p class="card-desc">Simule o envio de avisos, promoções ou recados no dashboard.</p>
+          <p class="card-desc">Envie avisos, promoções ou recados diretamente pelo bot.</p>
           <div class="form-group">
-            <label for="input-broadcast-phone">Telefone Destinatário:</label>
-            <input type="text" id="input-broadcast-phone" placeholder="Ex: 5583999999999">
+            <label for="input-broadcast-phone">Chat ID Destinatário (opcional):</label>
+            <input type="text" id="input-broadcast-phone" placeholder="Deixe vazio para usar o chat padrão">
           </div>
           <div class="form-group">
             <label for="textarea-announcement">Texto do Comunicado:</label>
             <textarea id="textarea-announcement" rows="4" placeholder="Ex: Informamos que abriremos neste feriado!"></textarea>
           </div>
-          <button id="btn-send-broadcast" class="btn-primary">Registrar Simulação</button>
+          <button id="btn-send-broadcast" class="btn-primary">Enviar Comunicado</button>
         </section>
       </div>
     </main>
@@ -91,7 +91,7 @@
     <a href="../Dashboard/Dash.html"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
     <a href="../Fila-de-espera/Fila.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Fila de espera</a>
     <a href="../Minha-Agenda/minhaAgenda.html"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Minha Agenda</a>
-    <a href="whats.html" class="active"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</a>
+    <a href="whats.html" class="active"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.3L3 21l2.2-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>Notificações</a>
   </nav>
 
   <script src="whats.js"></script>
