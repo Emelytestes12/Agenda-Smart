@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if ($('connection-title')) {
         $('connection-title').textContent = conectado ? 'Telegram Conectado' : 'Telegram Desconectado';
       }
-      if ($('whatsapp-status-phone')) {
-        $('whatsapp-status-phone').textContent = data.chatId ? `Chat ID: ${data.chatId}` : 'Chat ID não definido';
+      if ($('numero-status-phone')) {
+        $('numero-status-phone').textContent = data.chatId ? `Chat ID: ${data.chatId}` : 'Chat ID não definido';
       }
       if ($('connection-subtext')) {
         $('connection-subtext').textContent = conectado ? 'Bot ativo para disparos' : 'Verifique o .env do backend';

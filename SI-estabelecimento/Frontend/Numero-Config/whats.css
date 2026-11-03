@@ -20,7 +20,7 @@ html, body {
   padding-bottom: 90px; /* Garante que a barra inferior não tape os botões */
 }
 
-/* Estilos de Status do WhatsApp */
+/* Estilos de Status do Número */
 .status-connection-card { 
   background: rgba(74, 222, 128, 0.05); 
   border: 1px solid rgba(74, 222, 128, 0.2); 
@@ -69,9 +69,9 @@ html, body {
 .chat-bubble { background: #1a1d24; padding: 14px; border-radius: 0 12px 12px 12px; font-size: 13px; color: var(--text-main, #fff); max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); line-height: 1.5; border: 1px solid #2a2e37; }
 .chat-bubble strong { color: #fff; }
 
-.whatsapp-btn-mock { margin-top: 12px; background: #232730; border: 1px solid #333842; color: #4ade80; font-weight: 600; text-align: center; padding: 10px; border-radius: 6px; font-size: 12px; transition: background 0.2s; cursor: default; }
-.whatsapp-btn-mock:hover { background: #2a2e37; }
-.whatsapp-btn-mock.danger { color: #f87171; margin-top: 8px; }
+.numero-btn-mock { margin-top: 12px; background: #232730; border: 1px solid #333842; color: #4ade80; font-weight: 600; text-align: center; padding: 10px; border-radius: 6px; font-size: 12px; transition: background 0.2s; cursor: default; }
+.numero-btn-mock:hover { background: #2a2e37; }
+.numero-btn-mock.danger { color: #f87171; margin-top: 8px; }
 
 /* Toggle Switch */
 .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
@@ -98,7 +98,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
   border-color: var(--brand-blue, #ff5e00);
 }
 
-/* Conexão WhatsApp (Twilio - API oficial) */
+/* Conexão do Número (Telegram Bot API) */
 .qr-badge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 20px; color: var(--text-muted, #9ca3af); background: rgba(156, 163, 175, 0.1); border: 1px solid rgba(156, 163, 175, 0.2); }
 .qr-badge.online { color: #4ade80; background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.25); box-shadow: 0 0 10px rgba(74, 222, 128, 0.15); }
 .qr-wrapper { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }

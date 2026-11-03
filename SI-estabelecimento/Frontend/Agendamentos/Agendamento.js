@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
   const API_URL = 'http://localhost:3000/api/agendamentos';
+  const NOTIF_API = 'http://localhost:3000/api/notificacoes';
+  const DELAY_MINUTOS = 2; // tempo de espera do disparo de teste
 
   // State local dos agendamentos vindos do banco de dados
   let agendamentos = [];
@@ -93,6 +95,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const STATUS = { confirmado: 'Confirmado', aguardando: 'Aguardando', finalizado: 'Finalizado', cancelado: 'Cancelado' };
   const opcoes = Object.entries(STATUS).map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
   const esc = s => (s || '').toString().replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+
+  // --- DISPARO DE TESTE (2 minutos) ---
+  const disparosAtivos = new Map();   // id -> timestamp do disparo
+  const disparosConcluidos = new Set();
+  let tickerDisparos = null;
+
+  const rotuloDisparo = id => {
+    const key = Number(id);
+    if (disparosConcluidos.has(key)) return 'Enviado';
+
+    const fim = disparosAtivos.get(key);
+    if (!fim) return 'Disparar';
+
+    const restante = Math.max(0, Math.round((fim - Date.now()) / 1000));
+    const m = String(Math.floor(restante / 60)).padStart(2, '0');
+    const s = String(restante % 60).padStart(2, '0');
+    return `Enviando em ${m}:${s}`;
+  };
+
+  const atualizarContadores = () => {
+    const agora = Date.now();
+
+    disparosAtivos.forEach((fim, id) => {
+      const btn = body.querySelector(`[data-dispatch="${id}"]`);
+      const restante = Math.round((fim - agora) / 1000);
+
+      if (restante > 0) {
+        const m = String(Math.floor(restante / 60)).padStart(2, '0');
+        const s = String(restante % 60).padStart(2, '0');
+        if (btn) btn.textContent = `Enviando em ${m}:${s}`;
+      } else {
+        disparosAtivos.delete(id);
+        disparosConcluidos.add(id);
+        if (btn) {
+          btn.textContent = 'Enviado';
+          btn.classList.add('enviado');
+        }
+      }
+    });
+
+    if (disparosAtivos.size === 0 && tickerDisparos) {
+      clearInterval(tickerDisparos);
+      tickerDisparos = null;
+    }
+  };
 
   const body = $('schedule-body'), grid = $('calendar-grid'), search = $('search-input'), form = $('agendamento-form');
 
@@ -240,10 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${esc(item.servico)}</td>
         <td><span class="status-badge status-${statusItem}">${STATUS[statusItem] || statusItem}</span></td>
         <td>
-          <select class="status-select">
-            <option value="">Mudar Status...</option>
-            ${opcoes}
-          </select>
+          <div class="actions-cell">
+            <select class="status-select">
+              <option value="">Mudar Status...</option>
+              ${opcoes}
+            </select>
+            <button type="button" class="btn-dispatch${disparosConcluidos.has(item.id) ? ' enviado' : ''}" data-dispatch="${item.id}">${rotuloDisparo(item.id)}</button>
+          </div>
         </td>
       `;
 
@@ -267,6 +317,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   search.oninput = renderizarTabela;
   filtros.forEach(f => f.onchange = renderizarTabela);
+
+  // Disparo de teste: agenda o envio no backend e exibe o contador regressivo
+  body.onclick = async e => {
+    const btn = e.target.closest('.btn-dispatch');
+    if (!btn) return;
+
+    const id = Number(btn.dataset.dispatch);
+    if (disparosAtivos.has(id) || disparosConcluidos.has(id)) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Agendando...';
+
+    try {
+      const res = await fetch(`${NOTIF_API}/agendar-disparo/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ delayMinutes: DELAY_MINUTOS })
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Falha ao agendar o disparo.');
+
+      disparosAtivos.set(id, new Date(data.disparaEm).getTime());
+      btn.disabled = false;
+      atualizarContadores();
+      if (!tickerDisparos) tickerDisparos = setInterval(atualizarContadores, 1000);
+    } catch (err) {
+      console.error(err);
+      alert(`Erro ao agendar disparo: ${err.message}`);
+      btn.disabled = false;
+      btn.textContent = 'Disparar';
+    }
+  };
 
   // Alteração dinâmica de Status conectada ao Backend
   body.onchange = async e => {

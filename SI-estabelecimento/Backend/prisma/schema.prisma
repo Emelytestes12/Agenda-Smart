@@ -121,9 +121,9 @@ model LogAtividade {
 }
 
 // ==========================================
-// 8. CONFIGURAÇÕES DO WHATSAPP (Tela: WhatsApp Config)
+// 8. CONFIGURAÇÕES DO NÚMERO (Tela: Numero Config)
 // ==========================================
-model WhatsappConfig {
+model NumeroConfig {
   id           Int      @id @default(1)
   instanciaId  String?
   token        String?

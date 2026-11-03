@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (item.status === 'disparado') disparosHoje++;
 
-      // Badge do status no WhatsApp
+      // Badge do status do Número
       let badgeHtml = '';
       if (item.status === 'notificado') {
         badgeHtml = `<span class="status-badge status-disparado">📱 Notificado / Aguardando</span>`;
