@@ -19,6 +19,39 @@ router.get('/', async (req, res) => {
   }
 });
 
+// 1.1 Disponibilidade do dia: profissionais + serviços configurados na agenda
+router.get('/disponibilidade', async (req, res) => {
+  try {
+    const { data } = req.query;
+    if (!data) return res.status(400).json({ error: 'Data é obrigatória.' });
+
+    const [itens, profissionais] = await Promise.all([
+      prisma.agendaItem.findMany({ where: { data }, select: { prof: true, servico: true } }),
+      prisma.profissional.findMany()
+    ]);
+
+    const especialidades = Object.fromEntries(profissionais.map(p => [p.nome, p.especialidade]));
+    const vistos = new Set();
+    const combinacoes = [];
+
+    itens.forEach(item => {
+      const chave = `${item.prof}||${item.servico}`;
+      if (vistos.has(chave)) return;
+      vistos.add(chave);
+      combinacoes.push({
+        profissional: item.prof,
+        servico: item.servico,
+        especialidade: especialidades[item.prof] || ''
+      });
+    });
+
+    return res.status(200).json(combinacoes);
+  } catch (error) {
+    console.error('Erro ao buscar disponibilidade da agenda:', error);
+    return res.status(500).json({ error: 'Erro ao buscar disponibilidade.' });
+  }
+});
+
 // 2. Criar Agendamento no Grid
 router.post('/agendamentos', async (req, res) => {
   try {

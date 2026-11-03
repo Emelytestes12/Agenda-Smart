@@ -1,20 +1,139 @@
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
   const API_URL = 'http://localhost:3000/api/fila';
+  const AGENDA_URL = 'http://localhost:3000/api/minha-agenda';
+  const CLIENTES_URL = 'http://localhost:3000/api/clientes';
 
   let fila = [];
+  let clientes = [];
+  let combinacoes = []; // Profissional + Serviço disponíveis na data escolhida
+  let selecao = null;   // Combinação selecionada no bloco unificado
+  let clienteSelecionado = null;
 
   const esc = s => (s || '').toString().replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+  const soDigitos = s => (s || '').replace(/\D/g, '');
+  const formatarBR = iso => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '—';
+
   const form = $('queue-form'), search = $('search-input'), filterServ = $('filter-service'), body = $('queue-body');
 
   // --- CONTROLE DE DRAWER / MODAL ---
   const toggleDrawer = aberto => {
     ['drawer', 'drawer-overlay'].forEach(id => $(id).classList.toggle('open', aberto));
-    if (!aberto) form.reset();
+    if (!aberto) resetFormulario();
+  };
+
+  const resetFormulario = () => {
+    form.reset();
+    clienteSelecionado = null;
+    selecao = null;
+    combinacoes = [];
+    $('busca-resultados').hidden = true;
+    $('input-busca').value = '';
+    $('input-telefone').value = '';
+    $('disponibilidade-container').innerHTML = '<span class="texto-vazio">Selecione uma data para ver a disponibilidade.</span>';
   };
 
   $('btn-open-drawer').onclick = () => toggleDrawer(true);
   $('btn-close-drawer').onclick = $('drawer-overlay').onclick = () => toggleDrawer(false);
+
+  // --- BUSCA DE CLIENTE (nome ou telefone) ---
+  const carregarClientes = async () => {
+    try {
+      const res = await fetch(CLIENTES_URL);
+      if (res.ok) clientes = await res.json();
+    } catch (err) {
+      console.error('Erro ao buscar clientes:', err);
+    }
+  };
+
+  const selecionarCliente = cliente => {
+    clienteSelecionado = cliente;
+    $('input-busca').value = cliente.nome;
+    $('input-telefone').value = cliente.telefone;
+    $('busca-resultados').hidden = true;
+  };
+
+  // Fechar resultados ao clicar fora e Delegar clique para seleção
+  document.addEventListener('click', e => {
+    // Fechar ao clicar fora
+    if (!e.target.closest('.busca-grupo')) {
+      $('busca-resultados').hidden = true;
+    }
+    
+    // Delegar clique para os itens da busca
+    const itemBusca = e.target.closest('.busca-item');
+    if (itemBusca) {
+      const cliente = clientes.find(c => c.id == itemBusca.dataset.id);
+      if (cliente) selecionarCliente(cliente);
+    }
+  });
+
+  $('input-busca').oninput = e => {
+    const termo = e.target.value.trim().toLowerCase();
+    clienteSelecionado = null;
+    $('input-telefone').value = '';
+
+    if (!termo) { $('busca-resultados').hidden = true; return; }
+
+    const digitos = soDigitos(termo);
+    const achados = clientes.filter(c =>
+      c.nome.toLowerCase().includes(termo) || (digitos && soDigitos(c.telefone).includes(digitos))
+    ).slice(0, 6);
+
+    const dropdown = $('busca-resultados');
+    if (achados.length === 0) {
+      dropdown.innerHTML = '<span class="texto-vazio">Nenhum cliente encontrado.</span>';
+    } else {
+      dropdown.innerHTML = achados.map(c =>
+        `<button type="button" class="busca-item" data-id="${c.id}">
+           <strong>${esc(c.nome)}</strong><span>${esc(c.telefone)}</span>
+         </button>`
+      ).join('');
+    }
+    dropdown.hidden = false;
+  };
+
+  // --- DISPONIBILIDADE (Minha Agenda) PARA A DATA ESCOLHIDA ---
+  $('input-data').onchange = async e => {
+    const data = e.target.value;
+    selecao = null;
+    const container = $('disponibilidade-container');
+
+    if (!data) {
+      container.innerHTML = '<span class="texto-vazio">Selecione uma data para ver a disponibilidade.</span>';
+      return;
+    }
+
+    container.innerHTML = '<span class="texto-vazio">Carregando disponibilidade...</span>';
+
+    try {
+      const res = await fetch(`${AGENDA_URL}/disponibilidade?data=${data}`);
+      combinacoes = res.ok ? await res.json() : [];
+
+      if (combinacoes.length === 0) {
+        container.innerHTML = '<span class="texto-vazio">Nenhum profissional com horário cadastrado neste dia.</span>';
+        return;
+      }
+
+      container.innerHTML = combinacoes.map((c, i) =>
+        `<button type="button" class="combo-item" data-index="${i}">
+           <span class="combo-prof">${esc(c.profissional)}</span>
+           <span class="combo-servico">${esc(c.servico)}</span>
+           ${c.especialidade ? `<span class="combo-esp">${esc(c.especialidade)}</span>` : ''}
+         </button>`
+      ).join('');
+
+      container.querySelectorAll('.combo-item').forEach(btn => {
+        btn.onclick = () => {
+          selecao = combinacoes[Number(btn.dataset.index)];
+          container.querySelectorAll('.combo-item').forEach(b => b.classList.toggle('selecionado', b === btn));
+        };
+      });
+    } catch (err) {
+      console.error('Erro ao buscar disponibilidade:', err);
+      container.innerHTML = '<span class="texto-vazio">Erro ao carregar disponibilidade.</span>';
+    }
+  };
 
   // --- CARREGAMENTO DINÂMICO VIA API ---
   const carregarFila = async () => {
@@ -29,42 +148,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Popula o filtro de serviço a partir dos serviços cadastrados em Minha Agenda
+  const carregarFiltroServicos = async () => {
+    try {
+      const res = await fetch(AGENDA_URL);
+      if (!res.ok) return;
+      const dados = await res.json();
+      const servicos = dados.servicos || [];
+      filterServ.innerHTML = '<option value="all">Todos os Serviços</option>' +
+        servicos.map(s => `<option value="${esc(s.nome)}">${esc(s.nome)}</option>`).join('');
+    } catch (err) {
+      console.error('Erro ao carregar serviços da agenda:', err);
+    }
+  };
+
   // Renderiza e filtra os dados na tabela
   const renderizarFila = () => {
     const q = search.value.toLowerCase().trim();
     const s = filterServ.value;
+    const digitos = soDigitos(q);
 
-    // Remove apenas as linhas de itens da fila
     body.querySelectorAll('tr[data-id]').forEach(tr => tr.remove());
 
+    // Posição FIFO fixa: definida pela ordem de criação, independente dos filtros
+    const posicaoFifo = new Map(fila.map((item, i) => [item.id, i + 1]));
+
     const filtrados = fila.filter(item => {
-      const text = `${item.clienteNome || ''} ${item.clienteTelefone || ''}`.toLowerCase();
-      const bateTexto = text.includes(q);
+      const bateTexto = `${item.clienteNome || ''} ${item.clienteTelefone || ''}`.toLowerCase().includes(q)
+        || (digitos && soDigitos(item.clienteTelefone).includes(digitos));
       const bateServico = (s === 'all' || item.servico === s);
       return bateTexto && bateServico;
     });
 
     let disparosHoje = 0;
 
-    filtrados.forEach((item, index) => {
-      const pos = index + 1;
+    filtrados.forEach(item => {
+      const pos = posicaoFifo.get(item.id);
       const tr = document.createElement('tr');
       tr.dataset.id = item.id;
       tr.dataset.service = item.servico;
 
       if (item.status === 'disparado') disparosHoje++;
 
-      // Badge do status no WhatsApp
       let badgeHtml = '';
       if (item.status === 'disparado') {
-        badgeHtml = `<span class="status-badge status-disparado">📱 Zap Disparado</span>`;
+        badgeHtml = `<span class="status-badge status-disparado">Zap Disparado</span>`;
       } else if (item.status === 'aceito') {
         badgeHtml = `<span class="status-badge status-aceito">Aceitou via Zap</span>`;
       } else {
         badgeHtml = `<span class="status-badge status-aguardando">Na Fila</span>`;
       }
 
-      // Botões de ação baseados no status
       let acoesHtml = '';
       if (item.status === 'aceito') {
         acoesHtml = `
@@ -89,13 +223,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <strong class="client-name">${esc(item.clienteNome)}</strong>
           <span class="client-phone">${esc(item.clienteTelefone)}</span>
         </td>
+        <td><span class="time-col">${formatarBR(item.dataDesejada)}</span></td>
         <td>
           <strong>${esc(item.servico)}</strong>
           <span class="metrics-text">Prefere: ${esc(item.profissional || 'Qualquer')}</span>
         </td>
         <td>
-          ${item.vagaOfertada 
-            ? `<span class="badge-slot">${esc(item.vagaOfertada)}</span>` 
+          ${item.vagaOfertada
+            ? `<span class="badge-slot">${esc(item.vagaOfertada)}</span>`
             : `<span class="time-col">Sem Vaga</span><span class="date-subtext">Aguardando cancelamento</span>`}
         </td>
         <td>${badgeHtml}</td>
@@ -125,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!item) return;
 
     if (e.target.matches('.btn-fit')) {
-      // Encaixa na agenda e remove da fila de espera
       try {
         const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
         if (res.ok) {
@@ -137,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
       }
     } else if (e.target.matches('.btn-notify, .btn-resend')) {
-      // Dispara notificação via WhatsApp
       try {
         const res = await fetch(`${API_URL}/${id}/notificar`, {
           method: 'PATCH',
@@ -154,7 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
       }
     } else if (e.target.matches('.btn-remove')) {
-      // Remove o cliente da fila
       try {
         const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
         if (res.ok) {
@@ -171,11 +303,17 @@ document.addEventListener('DOMContentLoaded', () => {
   form.onsubmit = async e => {
     e.preventDefault();
 
+    const data = $('input-data').value;
+    if (!clienteSelecionado) return alert('Selecione um cliente na busca pelo nome ou telefone.');
+    if (!data) return alert('Selecione a data desejada.');
+    if (!selecao) return alert('Selecione o profissional e o serviço disponíveis no dia.');
+
     const novoItem = {
-      clienteNome: $('input-cliente').value.trim(),
-      clienteTelefone: $('input-telefone').value.trim(),
-      servico: $('input-servico').value,
-      profissional: $('input-profissional').value,
+      clienteNome: clienteSelecionado.nome,
+      clienteTelefone: clienteSelecionado.telefone,
+      servico: selecao.servico,
+      profissional: selecao.profissional,
+      dataDesejada: data,
       status: 'aguardando'
     };
 
@@ -189,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         const criado = await res.json();
         fila.push(criado);
+        fila.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         renderizarFila();
         toggleDrawer(false);
       } else {
@@ -201,5 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Inicialização
+  carregarClientes();
+  carregarFiltroServicos();
   carregarFila();
 });

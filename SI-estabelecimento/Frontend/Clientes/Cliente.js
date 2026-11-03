@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td><span class="client-obs">${esc(cliente.observacoes) || '-'}</span></td>
         <td style="text-align: right;">
           <button class="btn-primary btn-sm btn-agendar">+ Agendar Serviço</button>
+          <button class="btn-secondary btn-sm btn-fila">Fila de Espera</button>
           <button class="btn-secondary btn-sm btn-editar">Editar</button>
         </td>
       `;
@@ -76,9 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   search.oninput = renderizarTabela;
 
-  // Ações nos botões da tabela (Editar e Agendar)
+  // Ações nos botões da tabela (Editar, Agendar e Fila)
   body.onclick = e => {
     const btnAgendar = e.target.closest('.btn-agendar');
+    const btnFila = e.target.closest('.btn-fila');
     const btnEditar = e.target.closest('.btn-editar');
     const tr = e.target.closest('tr[data-id]');
 
@@ -86,6 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const nome = tr.cells[0].textContent;
       const tel = tr.cells[1].textContent;
       window.location.href = `../Agendamentos/Agendamento.html?nome=${encodeURIComponent(nome)}&tel=${encodeURIComponent(tel)}`;
+      return;
+    }
+
+    if (btnFila && tr) {
+      const nome = tr.cells[0].textContent;
+      const tel = tr.cells[1].textContent;
+      window.location.href = `../Fila-de-espera/Fila.html?nome=${encodeURIComponent(nome)}&tel=${encodeURIComponent(tel)}`;
       return;
     }
 

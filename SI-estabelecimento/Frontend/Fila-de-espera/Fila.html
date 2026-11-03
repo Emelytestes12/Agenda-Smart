@@ -37,9 +37,6 @@
         <label for="filter-service">Filtrar por Serviço:</label>
         <select id="filter-service">
           <option value="all">Todos os Serviços</option>
-          <option value="Maquiagem">Maquiagem</option>
-          <option value="Corte de Cabelo">Corte de Cabelo</option>
-          <option value="Manicure">Manicure</option>
         </select>
       </div>
     </aside>
@@ -57,6 +54,7 @@
             <tr>
               <th>Posição</th>
               <th>Cliente / WhatsApp</th>
+              <th>Dia Desejado</th>
               <th>Serviço / Profissional</th>
               <th>Vaga Ofertada / Origem</th>
               <th>Status do WhatsApp</th>
@@ -65,7 +63,7 @@
           </thead>
           <tbody id="queue-body">
             <tr id="empty-row" class="empty-row">
-              <td colspan="6">Nenhum cliente na fila de espera no momento.</td>
+              <td colspan="7">Nenhum cliente na fila de espera no momento.</td>
             </tr>
           </tbody>
         </table>
@@ -80,30 +78,24 @@
         <button id="btn-close-drawer" class="btn-close" aria-label="Fechar">&times;</button>
       </div>
       <form id="queue-form" class="drawer-body">
+        <div class="form-group busca-grupo">
+          <label for="input-busca">Buscar Cliente (nome ou telefone):</label>
+          <input type="text" id="input-busca" placeholder="Digite nome ou telefone..." autocomplete="off">
+          <div id="busca-resultados" class="busca-resultados" hidden></div>
+        </div>
         <div class="form-group">
           <label for="input-telefone">WhatsApp / Telefone:</label>
-          <input type="text" id="input-telefone" required placeholder="(11) 90000-0000">
+          <input type="text" id="input-telefone" readonly placeholder="Selecione um cliente na busca acima">
         </div>
         <div class="form-group">
-          <label for="input-cliente">Nome do Cliente:</label>
-          <input type="text" id="input-cliente" required placeholder="Ex: Ana Beatriz">
+          <label for="input-data">Data Desejada (dia lotado):</label>
+          <input type="date" id="input-data">
         </div>
         <div class="form-group">
-          <label for="input-servico">Serviço Desejado:</label>
-          <select id="input-servico" required>
-            <option value="">Selecione...</option>
-            <option value="Maquiagem">Maquiagem</option>
-            <option value="Corte de Cabelo">Corte de Cabelo</option>
-            <option value="Manicure">Manicure</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="input-profissional">Profissional Preferido:</label>
-          <select id="input-profissional">
-            <option value="Qualquer disponível">Qualquer disponível</option>
-            <option value="Carla">Carla</option>
-            <option value="Julia">Julia</option>
-          </select>
+          <label>Profissional &amp; Serviço no dia (Minha Agenda):</label>
+          <div id="disponibilidade-container" class="disponibilidade-container">
+            <span class="texto-vazio">Selecione uma data para ver a disponibilidade.</span>
+          </div>
         </div>
         <button type="submit" class="btn-primary btn-block">Adicionar Posição</button>
       </form>

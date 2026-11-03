@@ -59,6 +59,7 @@ model FilaEspera {
   clienteTelefone String
   servico         String
   profissional    String   @default("Qualquer disponível")
+  dataDesejada    String?  // Formato YYYY-MM-DD (dia lotado desejado)
   vagaOfertada    String?  // Ex: "Vaga das 15:00"
   status          String   @default("aguardando") // aguardando, disparado, aceito
   
@@ -66,6 +67,7 @@ model FilaEspera {
   updatedAt       DateTime @updatedAt
 
   @@index([status])
+  @@index([dataDesejada])
 }
 
 // ==========================================

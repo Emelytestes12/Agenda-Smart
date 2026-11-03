@@ -3,10 +3,13 @@ import { prisma } from '../lib/prisma.js';
 
 const router = express.Router();
 
-// 1. Listar todas as posições da fila
+// 1. Listar todas as posições da fila (FIFO: quem entrou primeiro fica na frente)
 router.get('/', async (req, res) => {
   try {
+    const { data } = req.query;
+
     const fila = await prisma.filaEspera.findMany({
+      where: data ? { dataDesejada: data } : undefined,
       orderBy: { createdAt: 'asc' }
     });
     return res.status(200).json(fila);
@@ -19,10 +22,10 @@ router.get('/', async (req, res) => {
 // 2. Adicionar novo cliente à fila
 router.post('/', async (req, res) => {
   try {
-    const { clienteNome, clienteTelefone, servico, profissional, status } = req.body;
+    const { clienteNome, clienteTelefone, servico, profissional, dataDesejada, status } = req.body;
 
-    if (!clienteNome || !clienteTelefone || !servico) {
-      return res.status(400).json({ error: 'Nome, telefone e serviço são obrigatórios.' });
+    if (!clienteNome || !clienteTelefone || !servico || !dataDesejada) {
+      return res.status(400).json({ error: 'Nome, telefone, serviço e data desejada são obrigatórios.' });
     }
 
     const novoItem = await prisma.filaEspera.create({
@@ -31,6 +34,7 @@ router.post('/', async (req, res) => {
         clienteTelefone,
         servico,
         profissional: profissional || 'Qualquer disponível',
+        dataDesejada,
         status: status || 'aguardando'
       }
     });
