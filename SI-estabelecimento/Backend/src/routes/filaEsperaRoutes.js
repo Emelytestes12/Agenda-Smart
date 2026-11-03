@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// 3. Notificar Vaga via WhatsApp (Disparo Dinâmico)
+// 3. Notificar Vaga (Simulação - Sem WhatsApp)
 router.post('/:id/notificar', async (req, res) => {
   try {
     const { id } = req.params;
@@ -57,55 +57,26 @@ router.post('/:id/notificar', async (req, res) => {
     const item = await prisma.filaEspera.findUnique({ where: { id: Number(id) } });
     if (!item) return res.status(404).json({ error: 'Registro da fila não encontrado.' });
 
-    const token = process.env.WHATSAPP_TOKEN;
-    const phoneId = process.env.WHATSAPP_PHONE_ID;
-
-    if (!token || !phoneId) {
-      return res.status(500).json({ error: 'WhatsApp não configurado.' });
-    }
-
-    // Normaliza a data para exibição (DD/MM/YYYY)
-    const dataBR = item.dataDesejada.split('-').reverse().join('/');
-    
-    // Modelo da Mensagem Dinâmica exigido
-    const mensagem = `Olá ${item.clienteNome}! Temos uma vaga disponível para o serviço de ${item.servico} com o(a) profissional ${item.profissional} no dia ${dataBR} às ${horario}. Deseja preencher essa vaga e garantir esse horário?`;
-
-    // Função auxiliar para normalizar telefone (reutilizando lógica do whatsappRoutes)
-    const cleanPhone = (phone) => {
-      let c = String(phone).replace(/\D/g, '');
-      if (c.length <= 11 && !c.startsWith('55')) c = '55' + c;
-      if (c.startsWith('55') && c.length === 13) c = c.substring(0, 4) + c.substring(5);
-      return c;
-    };
-
-    const url = `https://graph.facebook.com/v25.0/${phoneId}/messages`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: cleanPhone(item.clienteTelefone),
-        type: 'text',
-        text: { body: mensagem }
-      })
+    // Apenas atualiza o status na fila (simulando que foi notificado)
+    const atualizado = await prisma.filaEspera.update({
+      where: { id: Number(id) },
+      data: {
+        status: 'notificado',
+        vagaOfertada: `${horario}`
+      }
     });
 
-    if (response.ok) {
-      const atualizado = await prisma.filaEspera.update({
-        where: { id: Number(id) },
-        data: { 
-          status: 'notificado',
-          vagaOfertada: `${horario}`
-        }
-      });
-      return res.status(200).json(atualizado);
-    }
+    // Registra a notificação no log de atividades do sistema
+    await prisma.logAtividade.create({
+      data: {
+        tipo: 'info',
+        titulo: 'VAGA NOTIFICADA (SISTEMA)',
+        descricao: `Notificação de vaga para ${item.clienteNome} às ${horario}. WhatsApp desativado.`,
+        tempo: 'Agora'
+      }
+    });
 
-    const erroData = await response.json();
-    return res.status(400).json({ error: erroData.error?.message || 'Erro ao disparar WhatsApp' });
+    return res.status(200).json(atualizado);
   } catch (error) {
     console.error('Erro no disparo da fila:', error);
     return res.status(500).json({ error: 'Erro interno no servidor.' });
@@ -138,7 +109,7 @@ router.post('/:id/responder', async (req, res) => {
       }
     });
 
-    // Se aceitou, cria o agendamento real (opcional, conforme regra 3)
+    // Se aceitou, cria o agendamento real
     if (resposta === 'sim') {
       await prisma.agendamento.create({
         data: {

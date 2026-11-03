@@ -14,13 +14,13 @@
       <div class="logo-container">
         <img src="../Logo/logotipo.png" alt="Agenda Smart Logo" class="logo-img">
       </div>
-      <div class="status-connection-card">
+      <div class="status-connection-card" id="connection-card">
         <div class="connection-header">
-          <span class="status-dot online"></span>
-          <strong>WhatsApp Conectado</strong>
+          <span class="status-dot" id="status-dot"></span>
+          <strong id="connection-title">WhatsApp Desativado</strong>
         </div>
-        <p class="phone-number" id="whatsapp-status-phone">+55 (83) Configurado</p>
-        <span class="metrics-text">Status: API de Testes Ativa</span>
+        <p class="phone-number" id="whatsapp-status-phone">Modo Simulação</p>
+        <span class="metrics-text" id="connection-subtext">Envios reais desativados</span>
       </div>
       <h3 class="section-title">REGRAS DE DISPARO</h3>
       <div class="sidebar-info-box">
@@ -43,7 +43,7 @@
               <span class="slider round"></span>
             </label>
           </div>
-          <p class="card-desc">Envia mensagem automatizada solicitando confirmação do agendamento.</p>
+          <p class="card-desc">Envia mensagem simulada solicitando confirmação do agendamento.</p>
           <div class="form-group">
             <label for="select-antecedence">Antecedência:</label>
             <select id="select-antecedence">
@@ -62,14 +62,15 @@
             </div>
           </div>
           <button id="btn-save-reminders" class="btn-primary btn-block">Salvar Regra de Lembrete</button>
+          <button id="btn-test-reminder" class="btn-secondary btn-block" style="margin-top: 10px;">Testar Lembrete (Simulação)</button>
         </section>
 
         <!-- Card 2: Comunicado Geral -->
         <section class="config-card">
           <div class="card-header">
-            <h3 class="title-sm">2. Envio de Comunicados Rápidos</h3>
+            <h3 class="title-sm">2. Simulação de Comunicados</h3>
           </div>
-          <p class="card-desc">Dispare avisos, promoções ou recados para o número cadastrado.</p>
+          <p class="card-desc">Simule o envio de avisos, promoções ou recados no dashboard.</p>
           <div class="form-group">
             <label for="input-broadcast-phone">Telefone Destinatário:</label>
             <input type="text" id="input-broadcast-phone" placeholder="Ex: 5583999999999">
@@ -78,7 +79,7 @@
             <label for="textarea-announcement">Texto do Comunicado:</label>
             <textarea id="textarea-announcement" rows="4" placeholder="Ex: Informamos que abriremos neste feriado!"></textarea>
           </div>
-          <button id="btn-send-broadcast" class="btn-primary">Disparar Comunicado</button>
+          <button id="btn-send-broadcast" class="btn-primary">Registrar Simulação</button>
         </section>
       </div>
     </main>
