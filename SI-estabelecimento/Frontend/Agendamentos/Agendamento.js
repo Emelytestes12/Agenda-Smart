@@ -1,0 +1,401 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const $ = id => document.getElementById(id);
+  const API_URL = 'http://localhost:3000/api/agendamentos';
+  const NOTIF_API = 'http://localhost:3000/api/notificacoes';
+
+  // State local dos agendamentos vindos do banco de dados
+  let agendamentos = [];
+  let slotsDisponiveis = []; // Blocos vindos da "Minha Agenda"
+
+  // --- BUSCAR SLOTS DA MINHA AGENDA ---
+  const carregarSlotsDisponiveis = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/minha-agenda');
+      if (res.ok) {
+        const data = await res.json();
+        slotsDisponiveis = data.agendamentos || []; // AgendaItems no banco
+        popularSelectServicos();
+      }
+    } catch (err) {
+      console.error('Erro ao buscar slots:', err);
+    }
+  };
+
+  const popularSelectServicos = () => {
+    const select = $('input-servico');
+    if (!select) return;
+    const combos = [...new Set(slotsDisponiveis.map(s => `${s.servico} (${s.prof})`))];
+    
+    select.innerHTML = '<option value="">Selecione o serviço...</option>' + 
+      combos.map(c => `<option value="${c}">${c}</option>`).join('');
+  };
+
+  // Ao mudar o serviço, populamos as datas disponíveis para aquele profissional
+  const setupServicoChange = () => {
+    const inputServico = $('input-servico');
+    const inputData = $('input-data');
+    const inputHora = $('input-hora');
+    
+    if (!inputServico) return;
+    
+    inputServico.onchange = () => {
+      const valor = inputServico.value;
+      inputData.innerHTML = '<option value="">Selecione a data...</option>';
+      inputHora.innerHTML = '<option value="">Selecione a data primeiro...</option>';
+      
+      if (!valor) return;
+      
+      const [servico, prof] = valor.replace(')', '').split(' (');
+      const datasDisponiveis = [...new Set(slotsDisponiveis
+        .filter(s => s.servico === servico && s.prof === prof)
+        .map(s => s.data))].sort();
+      
+      if (datasDisponiveis.length > 0) {
+        inputData.innerHTML += datasDisponiveis.map(d => {
+          const [ano, mes, dia] = d.split('-');
+          return `<option value="${d}">${dia}/${mes}/${ano}</option>`;
+        }).join('');
+      } else {
+        inputData.innerHTML = '<option value="">Nenhuma data disponível</option>';
+      }
+    };
+  };
+
+  // Ao mudar a data, populamos os horários disponíveis
+  const setupDataChange = () => {
+    const inputServico = $('input-servico');
+    const inputData = $('input-data');
+    const inputHora = $('input-hora');
+    
+    if (!inputData) return;
+    
+    inputData.onchange = () => {
+      const valorServico = inputServico.value;
+      const valorData = inputData.value;
+      inputHora.innerHTML = '<option value="">Selecione o horário...</option>';
+      
+      if (!valorServico || !valorData) return;
+      
+      const [servico, prof] = valorServico.replace(')', '').split(' (');
+      const horasDisponiveis = slotsDisponiveis
+        .filter(s => s.servico === servico && s.prof === prof && s.data === valorData)
+        .map(s => s.hora)
+        .sort();
+      
+      if (horasDisponiveis.length > 0) {
+        inputHora.innerHTML += horasDisponiveis.map(h => `<option value="${h}">${h}</option>`).join('');
+      } else {
+        inputHora.innerHTML = '<option value="">Nenhum horário disponível</option>';
+      }
+    };
+  };
+
+  // Status e utilitários gerais
+  const STATUS = { confirmado: 'Confirmado', aguardando: 'Aguardando', finalizado: 'Finalizado', cancelado: 'Cancelado' };
+  const opcoes = Object.entries(STATUS).map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+  const esc = s => (s || '').toString().replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+
+  // Status em que a confirmação ainda pode ser disparada
+  const STATUS_AGUARDANDO = ['aguardando', 'pendente'];
+
+  // IDs de agendamentos que já receberam a mensagem de confirmação nesta sessão
+  const disparosEnviados = new Set();
+
+  const body = $('schedule-body'), grid = $('calendar-grid'), search = $('search-input'), form = $('agendamento-form');
+
+  // Popula os checkboxes de filtro por status
+  $('status-filters').innerHTML = Object.entries(STATUS).map(([v, t]) =>
+    `<label class="checkbox-item"><input type="checkbox" class="filter-status" value="${v}" checked> ${t}s</label>`).join('');
+  const filtros = [...document.querySelectorAll('.filter-status')];
+
+  const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  // Formatações de Data
+  const formatarBR = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  const formatarIso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  // Data de HOJE capturada dinamicamente
+  const HOJE_OBJ = new Date();
+  const HOJE_STR = formatarIso(HOJE_OBJ);
+
+  let dataAtual = new Date(HOJE_OBJ.getFullYear(), HOJE_OBJ.getMonth(), HOJE_OBJ.getDate());
+  let mesCal = dataAtual.getMonth(), anoCal = dataAtual.getFullYear();
+
+  // Renderizador do mini calendário
+  const renderizarCalendario = () => {
+    $('cal-month-year').textContent = `${nomesMeses[mesCal]} ${anoCal}`;
+    const diasHeader = [...'DSTQQSS'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
+    const inicio = new Date(anoCal, mesCal, 1).getDay();
+    const total = new Date(anoCal, mesCal + 1, 0).getDate();
+    const brancos = '<span class="cal-day"></span>'.repeat(inicio);
+    
+    const numDias = Array.from({ length: total }, (_, i) => {
+      const d = i + 1;
+      const isSelected = d === dataAtual.getDate() && mesCal === dataAtual.getMonth() && anoCal === dataAtual.getFullYear();
+      return `<span class="cal-day${isSelected ? ' active' : ''}">${d}</span>`;
+    }).join('');
+
+    grid.innerHTML = diasHeader + brancos + numDias;
+  };
+
+  const selecionarDia = (dia, mes, ano) => {
+    dataAtual = new Date(ano, mes, dia);
+    mesCal = mes; anoCal = ano;
+    renderizarCalendario();
+
+    const dataSelIso = formatarIso(dataAtual);
+    const ehHoje = dataSelIso === HOJE_STR;
+    
+    const displayEl = $('selected-date-display');
+    if (displayEl) {
+      displayEl.textContent = ehHoje ? `Hoje, ${formatarBR(dataAtual)}` : formatarBR(dataAtual);
+    }
+    
+    renderizarTabela();
+  };
+
+  grid.onclick = e => {
+    if (e.target.matches('.cal-day:not(:empty)')) {
+      selecionarDia(parseInt(e.target.textContent), mesCal, anoCal);
+    }
+  };
+
+  $('btn-prev-month').onclick = () => { mesCal--; if (mesCal < 0) { mesCal = 11; anoCal--; } renderizarCalendario(); };
+  $('btn-next-month').onclick = () => { mesCal++; if (mesCal > 11) { mesCal = 0; anoCal++; } renderizarCalendario(); };
+  
+  const btnToday = $('btn-today');
+  if (btnToday) {
+    btnToday.onclick = () => selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
+  }
+
+  // Controle do Drawer / Modal
+  const toggleDrawer = aberto => {
+    ['drawer', 'drawer-overlay'].forEach(id => $(id).classList.toggle('open', aberto));
+    if (!aberto) form.reset();
+  };
+  // --- LOGICA DE NOVO AGENDAMENTO (Cadastro Primeiro) ---
+  $('btn-open-drawer').onclick = () => {
+    const nome = $('input-cliente').value;
+    if (!nome || nome.includes('Selecione')) {
+      alert('Para um novo agendamento, selecione o cliente na tela de "Clientes" primeiro.');
+      window.location.href = '../Clientes/Cliente.html';
+    } else {
+      toggleDrawer(true);
+    }
+  };
+  $('btn-close-drawer').onclick = $('drawer-overlay').onclick = () => toggleDrawer(false);
+
+  // --- CARREGAMENTO DINÂMICO VIA API ---
+  const carregarAgendamentos = async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        agendamentos = await res.json();
+        renderizarTabela();
+      }
+    } catch (err) {
+      console.error('Erro ao buscar agendamentos:', err);
+    }
+  };
+
+  // Renderiza e filtra os dados dinâmicos no DOM
+  const renderizarTabela = () => {
+    const q = search.value.toLowerCase().trim();
+    const ativos = filtros.filter(f => f.checked).map(f => f.value);
+    const dataFiltroIso = formatarIso(dataAtual);
+    const ehHoje = dataFiltroIso === HOJE_STR;
+
+    // Limpa linhas anteriores mantendo as linhas estruturais de apoio
+    body.querySelectorAll('tr[data-id]').forEach(tr => tr.remove());
+
+    const dividerRow = $('divider-row');
+    let visiveisDoDia = 0;
+    let visiveisOutrasDatas = 0;
+
+    agendamentos.forEach(item => {
+      const statusItem = item.status || 'aguardando';
+      const nomeOuTel = `${item.clienteNome || ''} ${item.clienteTelefone || ''}`.toLowerCase();
+      const atendeFiltros = ativos.includes(statusItem) && nomeOuTel.includes(q);
+
+      const itemDataIso = item.data ? item.data.split('T')[0] : '';
+      const ehDataSelecionada = itemDataIso === dataFiltroIso;
+
+      if (!atendeFiltros) return;
+      if (!ehHoje && !ehDataSelecionada) return;
+
+      const tr = document.createElement('tr');
+      tr.dataset.id = item.id;
+      tr.dataset.status = statusItem;
+      tr.dataset.date = itemDataIso;
+
+      const [anoIn, mesIn, diaIn] = itemDataIso.split('-');
+      const dataFormatadaBR = `${diaIn}/${mesIn}`;
+
+      const podeDisparar = STATUS_AGUARDANDO.includes(statusItem);
+      const jaEnviado = disparosEnviados.has(item.id);
+
+      tr.innerHTML = `
+        <td class="time-col">
+          ${esc(item.hora)} 
+          ${ehDataSelecionada ? '' : `<small class="date-subtext">(${dataFormatadaBR})</small>`}
+        </td>
+        <td>
+          <strong class="client-name">${esc(item.clienteNome)}</strong>
+          <span class="client-phone">${esc(item.clienteTelefone)}</span>
+        </td>
+        <td>
+          <span class="badge-profile badge-frequente">Cliente</span>
+          <span class="metrics-text">Registrado</span>
+        </td>
+        <td>${esc(item.servico)}</td>
+        <td><span class="status-badge status-${statusItem}">${STATUS[statusItem] || statusItem}</span></td>
+        <td>
+          <div class="actions-cell">
+            <select class="status-select">
+              <option value="">Mudar Status...</option>
+              ${opcoes}
+            </select>
+            ${podeDisparar ? `<button type="button" class="btn-dispatch${jaEnviado ? ' enviado' : ''}" data-dispatch="${item.id}">${jaEnviado ? 'Enviado' : 'Disparar'}</button>` : ''}
+          </div>
+        </td>
+      `;
+
+      if (itemDataIso === dataFiltroIso) {
+        body.insertBefore(tr, dividerRow);
+        visiveisDoDia++;
+      } else if (ehHoje) {
+        body.appendChild(tr);
+        visiveisOutrasDatas++;
+      }
+    });
+
+    const totalVisiveis = ehHoje ? (visiveisDoDia + visiveisOutrasDatas) : visiveisDoDia;
+
+    if (dividerRow) {
+      dividerRow.hidden = !ehHoje || visiveisOutrasDatas === 0;
+    }
+
+    $('empty-row').hidden = totalVisiveis > 0;
+  };
+
+  search.oninput = renderizarTabela;
+  filtros.forEach(f => f.onchange = renderizarTabela);
+
+  // Dispara a mensagem de confirmação imediatamente para o agendamento
+  body.onclick = async e => {
+    const btn = e.target.closest('.btn-dispatch');
+    if (!btn) return;
+
+    const id = Number(btn.dataset.dispatch);
+    if (disparosEnviados.has(id)) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const res = await fetch(`${NOTIF_API}/confirmacao/${id}`, { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Falha ao enviar a confirmação.');
+
+      disparosEnviados.add(id);
+      btn.textContent = 'Enviado';
+      btn.classList.add('enviado');
+      alert(`Mensagem de confirmação enviada para ${data.clienteNome}!`);
+    } catch (err) {
+      console.error(err);
+      alert(`Erro ao disparar confirmação: ${err.message}`);
+      btn.disabled = false;
+      btn.textContent = 'Disparar';
+    }
+  };
+
+  // Alteração dinâmica de Status conectada ao Backend
+  body.onchange = async e => {
+    if (!e.target.matches('.status-select')) return;
+    const novoStatus = e.target.value;
+    if (!novoStatus) return;
+
+    const linha = e.target.closest('tr');
+    const id = linha.dataset.id;
+
+    try {
+      const res = await fetch(`${API_URL}/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: novoStatus })
+      });
+
+      if (res.ok) {
+        const index = agendamentos.findIndex(a => a.id == id);
+        if (index !== -1) agendamentos[index].status = novoStatus;
+        renderizarTabela();
+      } else {
+        alert('Erro ao atualizar status do agendamento.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
+  };
+
+  // Submissão do formulário de criação com POST para a API
+  form.onsubmit = async e => {
+    e.preventDefault();
+
+    const novoAgendamento = {
+      clienteTelefone: $('input-telefone').value.trim(),
+      clienteNome: $('input-cliente').value.trim(),
+      data: $('input-data').value,
+      hora: $('input-hora').value,
+      servico: $('input-servico').value,
+      status: 'aguardando'
+    };
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoAgendamento)
+      });
+
+      if (res.ok) {
+        const criado = await res.json();
+        agendamentos.push(criado);
+        renderizarTabela();
+        toggleDrawer(false);
+      } else {
+        alert('Erro ao salvar agendamento.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao conectar com o servidor.');
+    }
+  };
+
+  // --- CAPTURAR DADOS DA URL ---
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('nome')) {
+    const nome = params.get('nome');
+    const tel = params.get('tel');
+    $('input-cliente').value = nome;
+    $('input-telefone').value = tel;
+    
+    // Pequeno delay para garantir que a UI carregou e abrir o drawer automaticamente
+    setTimeout(() => toggleDrawer(true), 300);
+  }
+
+  // Inicialização
+  selecionarDia(HOJE_OBJ.getDate(), HOJE_OBJ.getMonth(), HOJE_OBJ.getFullYear());
+  carregarAgendamentos();
+  carregarSlotsDisponiveis();
+  setupServicoChange();
+  setupDataChange();
+
+  // --- SINCRONIZAÇÃO EM TEMPO REAL ---
+  // Atualiza o status quando o cliente responde à confirmação pelo Telegram
+  setInterval(carregarAgendamentos, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) carregarAgendamentos();
+  });
+});

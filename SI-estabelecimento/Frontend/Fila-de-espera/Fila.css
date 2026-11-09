@@ -1,0 +1,44 @@
+/* As regras globais já estão no global.css */
+/* Este arquivo mantém apenas especificidades da tela Fila de Espera, adaptadas para o Dark Mode Premium */
+
+.queue-summary-card { background: rgba(255, 94, 0, 0.05); border: 1px solid rgba(255, 94, 0, 0.15); border-radius: var(--raio); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.summary-item { display: flex; justify-content: space-between; align-items: center; }
+.summary-label { font-size: 12px; color: var(--text-main); font-weight: 500; }
+.summary-value { font-size: 18px; color: var(--brand-blue); font-weight: 800; text-shadow: var(--glow-subtle); }
+
+.pos-badge { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: #1a1a1a; border: 1px solid var(--border-color); font-weight: 600; color: var(--text-muted); font-size: 13px; }
+.pos-badge.pos-next { background: var(--brand-blue); color: #fff; border-color: var(--brand-blue); box-shadow: var(--glow-active); }
+
+.badge-slot { display: inline-block; background: rgba(255, 94, 0, 0.1); color: var(--brand-blue); padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255, 94, 0, 0.2); }
+
+.actions-cell { display: flex; gap: 8px; }
+.btn-action { padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 0; cursor: pointer; transition: all 0.2s; }
+.btn-call { background: var(--brand-blue); color: #fff; box-shadow: var(--glow-subtle); }
+.btn-call:hover { background: var(--brand-blue-dark); box-shadow: var(--glow-active); }
+.btn-resend { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+.btn-resend:hover { background: #1a1a1a; border-color: #333; }
+.btn-remove { background: transparent; color: var(--text-muted); border: 1px solid transparent; }
+.btn-remove:hover { color: #f87171; background: rgba(220, 38, 38, 0.1); border-color: rgba(248, 113, 113, 0.2); }
+
+.status-disparado { background: rgba(255, 94, 0, 0.1); color: var(--brand-blue); border-color: rgba(255, 94, 0, 0.2); }
+.status-aceito { background: rgba(22, 163, 74, 0.1); color: #4ade80; border-color: rgba(74, 222, 128, 0.2); }
+
+/* Busca de Cliente (Drawer) */
+.busca-grupo { position: relative; }
+.busca-resultados { position: absolute; top: 100%; left: 0; right: 0; z-index: 50; margin-top: 6px; display: flex; flex-direction: column; background: rgba(17, 17, 17, 0.95); backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: var(--raio); box-shadow: var(--shadow-md); overflow: hidden; }
+.busca-resultados[hidden] { display: none !important; }
+.busca-item { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--border-color); }
+.busca-item:last-child { border-bottom: 0; }
+.busca-item:hover { background: var(--bg-blue-light); }
+.busca-item strong { font-size: 13px; color: var(--text-main); font-weight: 500; }
+.busca-item span { font-size: 12px; color: var(--text-muted); }
+
+/* Bloco Unificado: Profissional + Serviço (Minha Agenda) */
+.disponibilidade-container { display: flex; flex-direction: column; gap: 8px; }
+.combo-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 12px 14px; text-align: left; background: #111111; border: 1px solid var(--border-color); border-radius: var(--raio); }
+.combo-item:hover { border-color: var(--border-color); background: #161616; }
+.combo-item.selecionado { border-color: var(--brand-blue); background: rgba(255, 94, 0, 0.06); box-shadow: var(--glow-subtle); }
+.combo-prof { font-size: 13px; font-weight: 600; color: var(--text-main); }
+.combo-servico { font-size: 12px; font-weight: 500; color: var(--brand-blue); text-align: right; }
+.combo-esp { grid-column: 1 / -1; font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.texto-vazio { font-size: 12px; color: var(--text-light); padding: 8px 0; }

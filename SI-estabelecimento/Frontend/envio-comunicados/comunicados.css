@@ -1,0 +1,140 @@
+/* Ajustes de Estrutura e Rolagem */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto; /* Habilita rolagem suave */
+  padding-bottom: 90px; /* Garante que a barra inferior não tape os botões */
+}
+
+/* Estilos de Status do Número */
+.status-connection-card { 
+  background: rgba(74, 222, 128, 0.05); 
+  border: 1px solid rgba(74, 222, 128, 0.2); 
+  border-radius: var(--raio, 8px); 
+  padding: 16px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+}
+.connection-header { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-main, #fff); font-weight: 500; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #6b7280; }
+.status-dot.online { background: #4ade80; box-shadow: 0 0 10px rgba(74, 222, 128, 0.4); }
+.phone-number { font-size: 15px; font-weight: 700; color: #4ade80; letter-spacing: 0.5px; }
+
+/* Grid de Configurações */
+.dashboard-grid { 
+  padding: 24px 28px; 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+  gap: 24px; 
+}
+.config-card { 
+  background: var(--bg-secondary, #161920); 
+  border: 1px solid var(--border-color, #232730); 
+  border-radius: var(--raio, 8px); 
+  padding: 24px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+}
+.config-card.full-width { grid-column: 1 / -1; }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.card-desc { font-size: 13px; color: var(--text-muted, #9ca3af); line-height: 1.5; }
+
+/* Caixas de Prévia do Chat */
+.chat-preview-box { 
+  background: #0f1115; 
+  border-radius: var(--raio, 8px); 
+  padding: 16px; 
+  border: 1px solid var(--border-color, #232730); 
+  position: relative; 
+  overflow: hidden; 
+}
+.chat-preview-box::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--brand-blue, #ff5e00); }
+.preview-tag { font-size: 11px; font-weight: 600; color: var(--text-muted, #9ca3af); display: block; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.chat-bubble { background: #1a1d24; padding: 14px; border-radius: 0 12px 12px 12px; font-size: 13px; color: var(--text-main, #fff); max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); line-height: 1.5; border: 1px solid #2a2e37; }
+.chat-bubble strong { color: #fff; }
+
+.numero-btn-mock { margin-top: 12px; background: #232730; border: 1px solid #333842; color: #4ade80; font-weight: 600; text-align: center; padding: 10px; border-radius: 6px; font-size: 12px; transition: background 0.2s; cursor: default; }
+.numero-btn-mock:hover { background: #2a2e37; }
+.numero-btn-mock.danger { color: #f87171; margin-top: 8px; }
+
+/* Toggle Switch */
+.switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #1a1a1a; border: 1px solid var(--border-color, #333); border-radius: 24px; transition: .3s; }
+.slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted, #9ca3af); border-radius: 50%; transition: .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+input:checked + .slider { background-color: rgba(255, 94, 0, 0.2); border-color: var(--brand-blue, #ff5e00); }
+input:checked + .slider:before { transform: translateX(24px); background-color: var(--brand-blue, #ff5e00); box-shadow: 0 0 8px var(--brand-blue, #ff5e00); }
+
+/* Inputs e Textareas */
+input[type="text"], select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #0f1115;
+  border: 1px solid var(--border-color, #232730);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--brand-blue, #ff5e00);
+}
+
+/* Conexão do Número (Telegram Bot API) */
+.qr-badge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 20px; color: var(--text-muted, #9ca3af); background: rgba(156, 163, 175, 0.1); border: 1px solid rgba(156, 163, 175, 0.2); }
+.qr-badge.online { color: #4ade80; background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.25); box-shadow: 0 0 10px rgba(74, 222, 128, 0.15); }
+.qr-wrapper { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+.qr-box { width: 260px; height: 260px; display: flex; align-items: center; justify-content: center; text-align: center; background: #0f1115; border: 1px dashed var(--border-color, #232730); border-radius: var(--raio, 8px); padding: 12px; box-sizing: border-box; }
+.qr-ok { color: #4ade80; font-size: 13px; font-weight: 600; }
+.qr-actions { display: flex; flex-direction: column; gap: 12px; min-width: 240px; }
+
+/* Sandbox Instruction UI */
+.sandbox-instruction {
+  background: rgba(255, 94, 0, 0.05);
+  border: 1px solid rgba(255, 94, 0, 0.2);
+  border-radius: var(--raio, 8px);
+  padding: 16px;
+  margin-bottom: 8px;
+}
+.sandbox-code {
+  background: #000;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+  text-align: center;
+  border: 1px solid var(--brand-blue, #ff5e00);
+}
+.sandbox-code code {
+  color: var(--brand-blue, #ff5e00);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.btn-secondary { background: transparent; color: var(--text-main, #fff); border: 1px solid var(--border-color, #232730); padding: 12px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-secondary:hover { background: #1a1a1a; border-color: #333; }
+.texto-vazio { font-size: 12px; color: var(--text-light, #6b7280); line-height: 1.5; }
+
+/* Indicador de carregamento */
+.spinner { width: 30px; height: 30px; border: 3px solid rgba(255, 94, 0, 0.18); border-top-color: var(--brand-blue, #ff5e00); border-radius: 50%; animation: qr-spin 0.8s linear infinite; }
+.spinner-sm { width: 14px; height: 14px; border-width: 2px; display: inline-block; vertical-align: -2px; margin-right: 6px; }
+@keyframes qr-spin { to { transform: rotate(360deg); } }
