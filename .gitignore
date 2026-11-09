@@ -1,0 +1,78 @@
+# ==========================================================
+# .gitignore — Agenda Smart
+# Impede o envio de credenciais, dependências, logs e
+# arquivos temporários de sistema/IDE para o repositório.
+# ==========================================================
+
+# ---------------- Variáveis de ambiente / Segredos ----------------
+# Nunca versionar credenciais reais (banco, Telegram, etc.)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+# Mantém o template de variáveis versionado
+!.env.example
+
+# Chaves, certificados e arquivos de secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+secrets.json
+*credentials*.json
+*serviceAccount*.json
+
+# ---------------- Dependências ----------------
+node_modules/
+**/node_modules/
+vendor/          # PHP / Composer
+venv/            # Python
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# ---------------- Logs ----------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+# ---------------- Build / Distribuição ----------------
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# ---------------- Sistema Operacional ----------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------- IDEs / Editores ----------------
+# Ignora o estado do editor, mas permite configs de time
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# ---------------- Temporários gerais ----------------
+*.tmp
+*.temp
+.cache/
