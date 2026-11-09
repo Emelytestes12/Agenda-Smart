@@ -119,16 +119,3 @@ model LogAtividade {
   tempo     String?  // Ex: "Há 12 minutos" ou timestamp
   createdAt DateTime @default(now())
 }
-
-// ==========================================
-// 8. CONFIGURAÇÕES DO NÚMERO (Tela: Numero Config)
-// ==========================================
-model NumeroConfig {
-  id           Int      @id @default(1)
-  instanciaId  String?
-  token        String?
-  phoneId      String?
-  status       String   @default("desconectado") // conectado, desconectado, aguardando_qr
-  mensagemBase String?
-  updatedAt    DateTime @updatedAt
-}

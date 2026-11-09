@@ -1,6 +1,7 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
-import { sendTelegramNotification } from '../lib/telegram.js';
+import { sendTelegramNotification, buildInlineKeyboard } from '../lib/telegram.js';
+import { processarRespostaFila } from '../lib/respostas.js';
 
 const router = express.Router();
 
@@ -64,7 +65,13 @@ router.post('/:id/notificar', async (req, res) => {
     // Modelo dinâmico da mensagem de vaga
     const mensagem = `Olá ${item.clienteNome}! Temos uma vaga disponível para o serviço de ${item.servico} com o(a) profissional ${item.profissional} no dia ${dataBR} às ${horario}. Deseja preencher essa vaga e garantir esse horário?`;
 
-    const resultado = await sendTelegramNotification(mensagem);
+    // Botões inline: o cliente responde direto no Telegram
+    const teclado = buildInlineKeyboard(
+      '✅ Sim, quero a vaga', `aceitar_vaga:${item.id}`,
+      '❌ Não tenho interesse', `recusar_vaga:${item.id}`
+    );
+
+    const resultado = await sendTelegramNotification(mensagem, undefined, teclado);
 
     if (!resultado.ok) {
       return res.status(400).json({ error: resultado.error || 'Erro ao disparar a notificação.' });
@@ -94,48 +101,15 @@ router.post('/:id/notificar', async (req, res) => {
   }
 });
 
-// 4. Webhook Simulado / Processamento de Resposta
+// 4. Resposta simulada pelo painel (fallback) — mesma regra usada pelo botão do Telegram
 router.post('/:id/responder', async (req, res) => {
   try {
-    const { id } = req.params;
     const { resposta } = req.body; // 'sim' ou 'nao'
+    const resultado = await processarRespostaFila(req.params.id, resposta === 'sim');
 
-    const item = await prisma.filaEspera.findUnique({ where: { id: Number(id) } });
-    if (!item) return res.status(404).json({ error: 'Registro não encontrado.' });
+    if (resultado.erro) return res.status(404).json({ error: resultado.erro });
 
-    const novoStatus = resposta === 'sim' ? 'aceito' : 'recusado';
-    
-    const atualizado = await prisma.filaEspera.update({
-      where: { id: Number(id) },
-      data: { status: novoStatus }
-    });
-
-    // Registrar no Dashboard (LogAtividade)
-    await prisma.logAtividade.create({
-      data: {
-        tipo: resposta === 'sim' ? 'success' : 'warning',
-        titulo: resposta === 'sim' ? 'VAGA ACEITA' : 'VAGA RECUSADA',
-        descricao: `${item.clienteNome} (${item.clienteTelefone}) ${resposta === 'sim' ? 'aceitou' : 'recusou'} a vaga para ${item.servico} em ${item.dataDesejada} às ${item.vagaOfertada || 'horário não definido'}.`,
-        tempo: 'Agora'
-      }
-    });
-
-    // Se aceitou, cria o agendamento real
-    if (resposta === 'sim') {
-      await prisma.agendamento.create({
-        data: {
-          clienteNome: item.clienteNome,
-          clienteTelefone: item.clienteTelefone,
-          data: item.dataDesejada,
-          hora: item.vagaOfertada || '00:00',
-          servico: item.servico,
-          profissional: item.profissional,
-          status: 'confirmado'
-        }
-      });
-    }
-
-    return res.status(200).json(atualizado);
+    return res.status(200).json(resultado.item);
   } catch (error) {
     console.error('Erro ao processar resposta da fila:', error);
     return res.status(500).json({ error: 'Erro interno.' });

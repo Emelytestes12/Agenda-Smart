@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
   const API_URL = 'http://localhost:3000/api/agendamentos';
   const NOTIF_API = 'http://localhost:3000/api/notificacoes';
-  const DELAY_MINUTOS = 2; // tempo de espera do disparo de teste
 
   // State local dos agendamentos vindos do banco de dados
   let agendamentos = [];
@@ -96,50 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const opcoes = Object.entries(STATUS).map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
   const esc = s => (s || '').toString().replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 
-  // --- DISPARO DE TESTE (2 minutos) ---
-  const disparosAtivos = new Map();   // id -> timestamp do disparo
-  const disparosConcluidos = new Set();
-  let tickerDisparos = null;
+  // Status em que a confirmação ainda pode ser disparada
+  const STATUS_AGUARDANDO = ['aguardando', 'pendente'];
 
-  const rotuloDisparo = id => {
-    const key = Number(id);
-    if (disparosConcluidos.has(key)) return 'Enviado';
-
-    const fim = disparosAtivos.get(key);
-    if (!fim) return 'Disparar';
-
-    const restante = Math.max(0, Math.round((fim - Date.now()) / 1000));
-    const m = String(Math.floor(restante / 60)).padStart(2, '0');
-    const s = String(restante % 60).padStart(2, '0');
-    return `Enviando em ${m}:${s}`;
-  };
-
-  const atualizarContadores = () => {
-    const agora = Date.now();
-
-    disparosAtivos.forEach((fim, id) => {
-      const btn = body.querySelector(`[data-dispatch="${id}"]`);
-      const restante = Math.round((fim - agora) / 1000);
-
-      if (restante > 0) {
-        const m = String(Math.floor(restante / 60)).padStart(2, '0');
-        const s = String(restante % 60).padStart(2, '0');
-        if (btn) btn.textContent = `Enviando em ${m}:${s}`;
-      } else {
-        disparosAtivos.delete(id);
-        disparosConcluidos.add(id);
-        if (btn) {
-          btn.textContent = 'Enviado';
-          btn.classList.add('enviado');
-        }
-      }
-    });
-
-    if (disparosAtivos.size === 0 && tickerDisparos) {
-      clearInterval(tickerDisparos);
-      tickerDisparos = null;
-    }
-  };
+  // IDs de agendamentos que já receberam a mensagem de confirmação nesta sessão
+  const disparosEnviados = new Set();
 
   const body = $('schedule-body'), grid = $('calendar-grid'), search = $('search-input'), form = $('agendamento-form');
 
@@ -271,6 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const [anoIn, mesIn, diaIn] = itemDataIso.split('-');
       const dataFormatadaBR = `${diaIn}/${mesIn}`;
 
+      const podeDisparar = STATUS_AGUARDANDO.includes(statusItem);
+      const jaEnviado = disparosEnviados.has(item.id);
+
       tr.innerHTML = `
         <td class="time-col">
           ${esc(item.hora)} 
@@ -292,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <option value="">Mudar Status...</option>
               ${opcoes}
             </select>
-            <button type="button" class="btn-dispatch${disparosConcluidos.has(item.id) ? ' enviado' : ''}" data-dispatch="${item.id}">${rotuloDisparo(item.id)}</button>
+            ${podeDisparar ? `<button type="button" class="btn-dispatch${jaEnviado ? ' enviado' : ''}" data-dispatch="${item.id}">${jaEnviado ? 'Enviado' : 'Disparar'}</button>` : ''}
           </div>
         </td>
       `;
@@ -318,34 +281,30 @@ document.addEventListener('DOMContentLoaded', () => {
   search.oninput = renderizarTabela;
   filtros.forEach(f => f.onchange = renderizarTabela);
 
-  // Disparo de teste: agenda o envio no backend e exibe o contador regressivo
+  // Dispara a mensagem de confirmação imediatamente para o agendamento
   body.onclick = async e => {
     const btn = e.target.closest('.btn-dispatch');
     if (!btn) return;
 
     const id = Number(btn.dataset.dispatch);
-    if (disparosAtivos.has(id) || disparosConcluidos.has(id)) return;
+    if (disparosEnviados.has(id)) return;
 
     btn.disabled = true;
-    btn.textContent = 'Agendando...';
+    btn.textContent = 'Enviando...';
 
     try {
-      const res = await fetch(`${NOTIF_API}/agendar-disparo/${id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ delayMinutes: DELAY_MINUTOS })
-      });
+      const res = await fetch(`${NOTIF_API}/confirmacao/${id}`, { method: 'POST' });
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || 'Falha ao agendar o disparo.');
+      if (!res.ok) throw new Error(data.error || 'Falha ao enviar a confirmação.');
 
-      disparosAtivos.set(id, new Date(data.disparaEm).getTime());
-      btn.disabled = false;
-      atualizarContadores();
-      if (!tickerDisparos) tickerDisparos = setInterval(atualizarContadores, 1000);
+      disparosEnviados.add(id);
+      btn.textContent = 'Enviado';
+      btn.classList.add('enviado');
+      alert(`Mensagem de confirmação enviada para ${data.clienteNome}!`);
     } catch (err) {
       console.error(err);
-      alert(`Erro ao agendar disparo: ${err.message}`);
+      alert(`Erro ao disparar confirmação: ${err.message}`);
       btn.disabled = false;
       btn.textContent = 'Disparar';
     }
@@ -432,4 +391,11 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarSlotsDisponiveis();
   setupServicoChange();
   setupDataChange();
+
+  // --- SINCRONIZAÇÃO EM TEMPO REAL ---
+  // Atualiza o status quando o cliente responde à confirmação pelo Telegram
+  setInterval(carregarAgendamentos, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) carregarAgendamentos();
+  });
 });

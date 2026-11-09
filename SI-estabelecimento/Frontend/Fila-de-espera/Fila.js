@@ -380,4 +380,11 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarClientes();
   carregarFiltroServicos();
   carregarFila();
+
+  // --- SINCRONIZAÇÃO EM TEMPO REAL ---
+  // Atualiza a tabela quando o cliente responde à vaga pelo Telegram (botões Sim/Não)
+  setInterval(carregarFila, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) carregarFila();
+  });
 });
